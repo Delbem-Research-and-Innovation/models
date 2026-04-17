@@ -26,10 +26,14 @@ jobs:
 
       - name: Find changed packages
         id: changed
-        env:
-          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
         run: |
-          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE=$(git rev-parse HEAD~1 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$BASE" ]; then
             PKGS=$(find models packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
               | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
           else
@@ -39,6 +43,7 @@ jobs:
               | sort -u \
               | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
           fi
+
           MATRIX=$(echo "$PKGS" | grep -v '^$' | jq -R . | jq -sc .)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
@@ -55,9 +60,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
+          enable-cache: true
 
       - name: Install dependencies
         run: make -C ${{ matrix.package }} dev
