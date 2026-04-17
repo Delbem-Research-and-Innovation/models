@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# LaTeX build artefacts (papers)
+models/**/paper/*.aux
+models/**/paper/*.bbl
+models/**/paper/*.bcf
+models/**/paper/*.blg
+models/**/paper/*.fdb_latexmk
+models/**/paper/*.fls
+models/**/paper/*.log
+models/**/paper/*.out
+models/**/paper/*.run.xml
+models/**/paper/*.synctex.gz
+models/**/paper/*.toc
+models/**/paper/*.pdf

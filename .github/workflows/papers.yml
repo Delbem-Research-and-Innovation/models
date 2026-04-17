@@ -1,0 +1,76 @@
+name: Papers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "models/**/paper/**"
+      - "packages/research-paper/**"
+      - ".github/workflows/build-paper.yml"
+      - ".github/workflows/papers.yml"
+  pull_request:
+    paths:
+      - "models/**/paper/**"
+      - "packages/research-paper/**"
+      - ".github/workflows/build-paper.yml"
+      - ".github/workflows/papers.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detect:
+    name: Detect Changed Papers
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.changed.outputs.matrix }}
+      any: ${{ steps.changed.outputs.any }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find paper directories to build
+        id: changed
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          ALL_PAPERS=$(find models -mindepth 3 -maxdepth 3 -type d -name paper 2>/dev/null || true)
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            PAPERS="$ALL_PAPERS"
+          else
+            CHANGED=$(git diff --name-only "$BASE" HEAD || true)
+            # If shared infra changed, rebuild everything.
+            if echo "$CHANGED" | grep -qE '^(packages/research-paper/|\.github/workflows/(build-)?papers?\.yml$)'; then
+              PAPERS="$ALL_PAPERS"
+            else
+              PAPERS=$(echo "$CHANGED" \
+                | grep -E '^models/[^/]+/paper/' \
+                | awk -F/ '{print $1"/"$2"/"$3}' \
+                | sort -u || true)
+            fi
+          fi
+          MATRIX=$(echo "$PAPERS" | grep -v '^$' | jq -R . | jq -sc .)
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          if [ "$MATRIX" = "[]" ]; then
+            echo "any=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build — ${{ matrix.paper }}
+    needs: detect
+    if: needs.detect.outputs.any == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        paper: ${{ fromJson(needs.detect.outputs.matrix) }}
+    uses: ./.github/workflows/build-paper.yml
+    with:
+      paper-path: ${{ matrix.paper }}

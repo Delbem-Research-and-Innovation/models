@@ -1,0 +1,18 @@
+%% model-commands.sty — model Research common macros
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{model-commands}[2026/04/16 model Research common macros]
+
+%% xcolor already loaded by model-paper.cls
+
+%% Authoring helpers
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO:} #1\textbf{]}}}
+\newcommand{\note}[1]{\textcolor{blue!50!black}{\textit{(#1)}}}
+
+%% Reference shortcuts
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
+\newcommand{\equref}[1]{Equation~\eqref{eq:#1}}
+
+%% Code
+\newcommand{\code}[1]{\texttt{#1}}

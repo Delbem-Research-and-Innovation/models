@@ -1,0 +1,44 @@
+{
+  "pythonVersion": "3.12",
+  "executionEnvironments": [
+    {
+      "root": "packages/api",
+      "extraPaths": [
+        "packages/api/src",
+        "packages/postgresdb/src",
+        "packages/api/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "packages/agent-bill-extractor",
+      "extraPaths": [
+        "packages/agent-bill-extractor/src",
+        "packages/postgresdb/src",
+        "packages/agent-bill-extractor/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "packages/postgresdb",
+      "extraPaths": [
+        "packages/postgresdb/src",
+        "packages/postgresdb/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "packages/agent-core",
+      "extraPaths": [
+        "packages/agent-core/src",
+        "packages/agent-core/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "packages/agent-data-catalog",
+      "extraPaths": [
+        "packages/agent-data-catalog/src",
+        "packages/agent-core/src",
+        "packages/postgresdb/src",
+        "packages/agent-data-catalog/.venv/lib/python3.12/site-packages"
+      ]
+    }
+  ]
+}

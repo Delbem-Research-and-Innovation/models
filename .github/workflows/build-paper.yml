@@ -1,0 +1,56 @@
+name: Build Paper (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      paper-path:
+        description: "Path to the paper directory (e.g. models/damicore-clusterizer/paper)"
+        required: true
+        type: string
+      paper-name:
+        description: "Main .tex basename (without extension)"
+        required: false
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compile ${{ inputs.paper-path }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute artifact name
+        id: name
+        env:
+          PAPER_PATH: ${{ inputs.paper-path }}
+        run: |
+          safe=$(echo "$PAPER_PATH" | tr '/' '-')
+          echo "artifact=paper-$safe" >> "$GITHUB_OUTPUT"
+
+      - name: Install Tectonic
+        uses: wtfjoke/setup-tectonic@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Tectonic bundle
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Tectonic
+          key: tectonic-${{ runner.os }}-${{ hashFiles(format('{0}/**/*.tex', inputs.paper-path)) }}
+          restore-keys: |
+            tectonic-${{ runner.os }}-
+
+      - name: Compile paper
+        working-directory: ${{ inputs.paper-path }}
+        run: make paper
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.artifact }}
+          path: ${{ inputs.paper-path }}/${{ inputs.paper-name }}.pdf
+          if-no-files-found: error
