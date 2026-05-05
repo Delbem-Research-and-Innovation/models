@@ -175,6 +175,13 @@ def compute_distance_matrix(
         the distance matrix. It can be a JSON string or a DistanceMatrixInput
         object.
 
+    Returns
+    -------
+    DistanceMatrixOutput
+        An object containing the results of the distance matrix computation,
+        including status, input directory, total files analyzed, matrix dimensions,
+        metric used, compressor used, and output file path.
+
     Examples
     --------
     >>> input_contract = DistanceMatrixInput(
