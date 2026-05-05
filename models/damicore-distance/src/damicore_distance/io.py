@@ -1,4 +1,7 @@
+import csv
 import os
+
+from numpy import ndarray
 
 
 def _get_files_from_directory(path: str) -> list[str]:
@@ -50,3 +53,28 @@ def _get_file_data(file_path: str) -> bytes:
 
     with open(file_path, "rb") as f:
         return f.read()
+
+
+def export_ncd_to_csv(matrix: ndarray, filenames: list[str], output_path: str) -> None:
+    """
+    Export the NCD matrix to a CSV file.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        The NCD matrix to export.
+    filenames : list[str]
+        The list of filenames corresponding to the rows/columns of the matrix.
+    output_path : str
+        The path to save the CSV file.
+    """
+    n = len(filenames)
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    with open(output_path, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([""] + filenames)
+
+        for i in range(n):
+            writer.writerow([filenames[i]] + list(matrix[i]))
