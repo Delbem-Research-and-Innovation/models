@@ -20,6 +20,7 @@ select = ["E", "F", "I", "UP"]
 venvPath = "."
 venv = ".venv"
 strict = true
+extraPaths = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
