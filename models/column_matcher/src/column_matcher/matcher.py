@@ -15,7 +15,7 @@ from functools import lru_cache
 from itertools import product
 from typing import Any
 
-from thefuzz import fuzz
+from thefuzz import fuzz  # type: ignore
 
 
 @lru_cache(maxsize=256)
