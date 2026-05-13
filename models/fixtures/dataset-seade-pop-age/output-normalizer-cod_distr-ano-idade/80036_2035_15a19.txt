@@ -1,0 +1,2 @@
+Homens;8500
+Mulheres;8125
