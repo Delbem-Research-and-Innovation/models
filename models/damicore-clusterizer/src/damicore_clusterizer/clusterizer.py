@@ -1,10 +1,9 @@
 import glob
 import json
 import os
+
 import networkx as nx
-
 from Bio import Phylo
-
 
 
 def run_clustering(payload):
