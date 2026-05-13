@@ -19,6 +19,7 @@ select = ["E", "F", "I", "UP"]
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+extraPaths = ["src"]
 strict = true
 
 [tool.pytest.ini_options]
