@@ -1,8 +1,10 @@
-
+import glob
 import json
+import os
+
 from Bio import Phylo
 import networkx as nx
-import os
+
 
 def run_clustering(payload):
     """
@@ -10,15 +12,15 @@ def run_clustering(payload):
     e gera um novo ficheiro com os resultados.
     """
     # 1. Extração de caminhos e parâmetros do payload
-    # O código não tem nomes de ficheiros fixos, ele usa o que for enviado
-    tree_path = payload.get('topology_tree_path')
-    output_path = payload.get('output_file_path')
-    tree_format = payload.get('tree_format', 'newick')
-    algo_name = payload.get('clustering_strategy', {}).get('algorithm', 'fast_newman')
+    tree_path = payload.get("topology_tree_path")
+    output_path = payload.get("output_file_path")
+    tree_format = payload.get("tree_format", "newick")
+    algo_name = payload.get("clustering_strategy", {}).get("algorithm", "fast_newman")
 
     # Validação de segurança
     if not tree_path or not os.path.exists(tree_path):
-        return {"status": "error", "message": f"Arquivo de entrada não encontrado: {tree_path}"}
+        error_msg = f"Arquivo de entrada não encontrado: {tree_path}"
+        return {"status": "error", "message": error_msg}
 
     # 2. Leitura do ficheiro de entrada (Qualquer .newick)
     try:
@@ -40,18 +42,14 @@ def run_clustering(payload):
     # 4. Organização dos Dados (Filtra apenas as folhas/dados reais)
     leaves = [node.name for node in tree.get_terminals()]
     clusters_to_save = []
-    
+
     for idx, comm in enumerate(communities):
         members = [str(node) for node in comm if node in leaves]
         if members:
-            clusters_to_save.append({
-                "cluster_id": idx,
-                "elements": members
-            })
+            clusters_to_save.append({"cluster_id": idx, "elements": members})
 
     # 5. Geração do Ficheiro de Saída
-    # Aqui o script "cospe" o resultado num novo arquivo físico
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump({"clusters": clusters_to_save}, f, indent=4)
 
     # 6. Retorno do Contrato de Saída (Metadados)
@@ -61,14 +59,12 @@ def run_clustering(payload):
         "clustering_algorithm": algo_name,
         "modularity_score_Q": round(q_score, 2),
         "total_clusters_detected": len(clusters_to_save),
-        "output_file_path": output_path
+        "output_file_path": output_path,
     }
 
+
 # --- BLOCO DE EXECUÇÃO PARA TESTES ---
-# --- BLOCO DE EXECUÇÃO GENÉRICO ---
 if __name__ == "__main__":
-    import glob
-    
     # Imprime a diretoria atual para confirmar onde o script está a procurar
     print(f"Diretoria de execução: {os.getcwd()}")
 
@@ -76,9 +72,8 @@ if __name__ == "__main__":
     arquivos_encontrados = glob.glob("*.newick")
 
     if not arquivos_encontrados:
-        # Se não encontrar nada, lista o que existe na pasta para ajudar no diagnóstico
         print("Nenhum ficheiro .newick encontrado. Ficheiros na pasta:")
-        print(os.listdir('.'))
+        print(os.listdir("."))
     else:
         print(f"Sucesso: {len(arquivos_encontrados)} ficheiro(s) encontrado(s).\n")
 
@@ -87,12 +82,12 @@ if __name__ == "__main__":
                 "topology_tree_path": ficheiro,
                 "tree_format": "newick",
                 "clustering_strategy": {"algorithm": "fast_newman"},
-                "output_file_path": f"resultado_{ficheiro.replace('.newick', '.json')}"
+                "output_file_path": f"resultado_{ficheiro.replace('.newick', '.json')}",
             }
 
             print(f"--- A processar: {ficheiro} ---")
             resultado = run_clustering(payload_dinamico)
-            
+
             # Exibe o resultado no terminal conforme solicitado
             print(json.dumps(resultado, indent=2))
             print(f"Saída salva em: {resultado['output_file_path']}\n")
