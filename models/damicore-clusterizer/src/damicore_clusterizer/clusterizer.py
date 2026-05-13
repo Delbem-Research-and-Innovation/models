@@ -1,7 +1,7 @@
 import glob
 import json
-import networkx as nx
 import os
+import networkx as nx
 
 from Bio import Phylo
 
