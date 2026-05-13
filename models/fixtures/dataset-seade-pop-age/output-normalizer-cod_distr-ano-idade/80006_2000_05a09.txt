@@ -1,0 +1,2 @@
+Homens;360
+Mulheres;330
