@@ -3,15 +3,15 @@
         {
             "cluster_id": 0,
             "elements": [
-                "DistritoA2",
-                "DistritoA1"
+                "DistritoA1",
+                "DistritoA2"
             ]
         },
         {
             "cluster_id": 1,
             "elements": [
-                "DistritoB2",
-                "DistritoB1"
+                "DistritoB1",
+                "DistritoB2"
             ]
         },
         {
@@ -24,43 +24,43 @@
         {
             "cluster_id": 3,
             "elements": [
-                "DistritoD2",
-                "DistritoD1"
+                "DistritoD1",
+                "DistritoD2"
             ]
         },
         {
             "cluster_id": 4,
             "elements": [
-                "DistritoE2",
-                "DistritoE1"
+                "DistritoE1",
+                "DistritoE2"
             ]
         },
         {
             "cluster_id": 5,
             "elements": [
-                "DistritoF2",
-                "DistritoF1"
+                "DistritoF1",
+                "DistritoF2"
             ]
         },
         {
             "cluster_id": 6,
             "elements": [
-                "DistritoG1",
-                "DistritoG2"
+                "DistritoG2",
+                "DistritoG1"
             ]
         },
         {
             "cluster_id": 7,
             "elements": [
-                "DistritoH1",
-                "DistritoH2"
+                "DistritoH2",
+                "DistritoH1"
             ]
         },
         {
             "cluster_id": 8,
             "elements": [
-                "DistritoI2",
-                "DistritoI1"
+                "DistritoI1",
+                "DistritoI2"
             ]
         },
         {
@@ -73,8 +73,8 @@
         {
             "cluster_id": 10,
             "elements": [
-                "DistritoK1",
-                "DistritoK2"
+                "DistritoK2",
+                "DistritoK1"
             ]
         },
         {
@@ -87,15 +87,15 @@
         {
             "cluster_id": 12,
             "elements": [
-                "DistritoM1",
-                "DistritoM2"
+                "DistritoM2",
+                "DistritoM1"
             ]
         },
         {
             "cluster_id": 13,
             "elements": [
-                "DistritoN1",
-                "DistritoN2"
+                "DistritoN2",
+                "DistritoN1"
             ]
         }
     ]
