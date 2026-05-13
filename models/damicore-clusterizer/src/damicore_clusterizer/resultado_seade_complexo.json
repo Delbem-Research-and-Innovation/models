@@ -1,0 +1,102 @@
+{
+    "clusters": [
+        {
+            "cluster_id": 0,
+            "elements": [
+                "DistritoA2",
+                "DistritoA1"
+            ]
+        },
+        {
+            "cluster_id": 1,
+            "elements": [
+                "DistritoB2",
+                "DistritoB1"
+            ]
+        },
+        {
+            "cluster_id": 2,
+            "elements": [
+                "DistritoC2",
+                "DistritoC1"
+            ]
+        },
+        {
+            "cluster_id": 3,
+            "elements": [
+                "DistritoD2",
+                "DistritoD1"
+            ]
+        },
+        {
+            "cluster_id": 4,
+            "elements": [
+                "DistritoE2",
+                "DistritoE1"
+            ]
+        },
+        {
+            "cluster_id": 5,
+            "elements": [
+                "DistritoF2",
+                "DistritoF1"
+            ]
+        },
+        {
+            "cluster_id": 6,
+            "elements": [
+                "DistritoG2",
+                "DistritoG1"
+            ]
+        },
+        {
+            "cluster_id": 7,
+            "elements": [
+                "DistritoH1",
+                "DistritoH2"
+            ]
+        },
+        {
+            "cluster_id": 8,
+            "elements": [
+                "DistritoI1",
+                "DistritoI2"
+            ]
+        },
+        {
+            "cluster_id": 9,
+            "elements": [
+                "DistritoJ2",
+                "DistritoJ1"
+            ]
+        },
+        {
+            "cluster_id": 10,
+            "elements": [
+                "DistritoK2",
+                "DistritoK1"
+            ]
+        },
+        {
+            "cluster_id": 11,
+            "elements": [
+                "DistritoL2",
+                "DistritoL1"
+            ]
+        },
+        {
+            "cluster_id": 12,
+            "elements": [
+                "DistritoM1",
+                "DistritoM2"
+            ]
+        },
+        {
+            "cluster_id": 13,
+            "elements": [
+                "DistritoN1",
+                "DistritoN2"
+            ]
+        }
+    ]
+}
