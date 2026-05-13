@@ -1,0 +1,1 @@
+sempre escreva em python e nunca não use programação orientada a objetos, mesmo que seja necessário.
