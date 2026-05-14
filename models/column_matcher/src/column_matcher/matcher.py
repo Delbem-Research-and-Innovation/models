@@ -15,7 +15,9 @@ from functools import lru_cache
 from itertools import product
 from typing import Any
 
-from thefuzz import fuzz  # type: ignore
+from thefuzz import (  # pyright: ignore[reportMissingTypeStubs]  # thefuzz has no published type stubs
+    fuzz,
+)
 
 
 @lru_cache(maxsize=256)
@@ -155,7 +157,8 @@ def similarity_score(source: str, target: str) -> float:
     """
     normalized_source = normalize_column_name(source)
     normalized_target = normalize_column_name(target)
-    return fuzz.ratio(normalized_source, normalized_target) / 100.0
+    score: int = fuzz.ratio(normalized_source, normalized_target)  # type: ignore[reportUnknownMemberType]  # thefuzz is untyped
+    return score / 100.0
 
 
 def validate_threshold(threshold: float) -> float:

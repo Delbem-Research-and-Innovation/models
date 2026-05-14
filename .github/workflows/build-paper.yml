@@ -20,6 +20,7 @@ jobs:
   build:
     name: Compile ${{ inputs.paper-path }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
