@@ -55,7 +55,7 @@ jobs:
                 | sort -u || true)
             fi
           fi
-          MATRIX=$(echo "$PAPERS" | grep -v '^$' | jq -R . | jq -sc .)
+          MATRIX=$(echo "$PAPERS" | (grep -v '^$' || true) | jq -R . | jq -sc .)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           if [ "$MATRIX" = "[]" ]; then
             echo "any=false" >> "$GITHUB_OUTPUT"

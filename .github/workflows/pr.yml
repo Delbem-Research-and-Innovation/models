@@ -38,7 +38,7 @@ jobs:
           # Helper: every package/model that has a Makefile.
           all_packages() {
             find models packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
-              | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done \
+              | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done \
               | sort -u
           }
 
@@ -54,15 +54,15 @@ jobs:
             else
               # Packages whose own files changed.
               PKGS=$(echo "$CHANGED" \
-                | grep -E '^(models|packages)/' \
+                | (grep -E '^(models|packages)/' || true) \
                 | awk -F/ '{print $1"/"$2}' \
                 | sort -u \
-                | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
+                | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done)
 
               # Shared fixtures changed → re-test every model.
               if echo "$CHANGED" | grep -qE '^models/fixtures/'; then
                 MORE=$(find models -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
-                  | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
+                  | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done)
                 PKGS=$(printf '%s\n%s' "$PKGS" "$MORE" | sort -u)
               fi
 
@@ -73,7 +73,7 @@ jobs:
             fi
           fi
 
-          MATRIX=$(echo "$PKGS" | grep -v '^$' | jq -R . | jq -sc .)
+          MATRIX=$(echo "$PKGS" | (grep -v '^$' || true) | jq -R . | jq -sc .)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
 
@@ -115,7 +115,9 @@ jobs:
     steps:
       - name: Evaluate
         run: |
-          if [ "${{ needs.ci.result }}" = "failure" ] || [ "${{ needs.ci.result }}" = "cancelled" ]; then
+          if [ "${{ needs.detect.result }}" = "failure" ] || \
+             [ "${{ needs.ci.result }}" = "failure" ] || \
+             [ "${{ needs.ci.result }}" = "cancelled" ]; then
             echo "::error::CI failed"
             exit 1
           fi
