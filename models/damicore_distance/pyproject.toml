@@ -1,8 +1,11 @@
 [project]
-name = "api"
+name = "damicore-distance"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.4.4",
+    "pydantic>=2.13.3",
+]
 
 [dependency-groups]
 dev = ["ruff>=0.9", "pyright>=1.1", "pytest>=8", "pytest-cov>=6"]
@@ -16,3 +19,5 @@ select = ["E", "F", "I", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["unit: fast isolated unit tests"]

@@ -8,16 +8,11 @@ dependencies = []
 dev = ["ruff>=0.9", "pyright>=1.1", "pytest>=8", "pytest-cov>=6"]
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 exclude = [".venv", "dist", "__pycache__"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
-
-[tool.pyright]
-venvPath = "."
-venv = ".venv"
-strict = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
