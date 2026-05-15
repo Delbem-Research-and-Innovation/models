@@ -19,3 +19,30 @@ from typing import Any, Dict
 from damicore_tree_builder.matrix_loader import MatrixLoader
 from damicore_tree_builder.neighbor_joining import NeighborJoining
 from damicore_tree_builder.newick_writer import NewickWriter
+
+
+def parse_args() -> argparse.Namespace:
+    """
+    Parses command-line arguments.
+
+    Returns:
+        Parsed command-line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description="Build a Neighbor-Joining tree from a distance matrix CSV."
+    )
+
+    parser.add_argument(
+        "--input",
+        required=True,
+        help="Path to the input distance matrix CSV file.",
+    )
+
+    parser.add_argument(
+        "--output",
+        required=True,
+        help="Path where the output Newick tree file will be saved.",
+    )
+
+    return parser.parse_args()
+
