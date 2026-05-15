@@ -59,3 +59,51 @@ class NeighborJoining:
         """
         self.names = names
         self.matrix = matrix
+
+    
+    # Auxiliary functions
+    def _validate_input(self) -> None:
+        """
+        Validates whether the names and matrix are compatible.
+        """
+        if not self.names:
+            raise ValueError("The names list cannot be empty.")
+
+        if not self.matrix:
+            raise ValueError("The distance matrix cannot be empty.")
+
+        if len(self.names) != len(self.matrix):
+            raise ValueError(
+                "The number of names must match the number of matrix rows."
+            )
+
+        for row in self.matrix:
+            if len(row) != len(self.names):
+                raise ValueError(
+                    "The distance matrix must be square and match the number of names."
+                )
+
+        if len(self.names) < 3:
+            raise ValueError(
+                "Neighbor-Joining requires at least 3 elements to build a tree."
+            )
+
+    def _to_biopython_distance_matrix(self) -> DistanceMatrix:
+        """
+        Converts a full square matrix to BioPython's DistanceMatrix format.
+
+        Returns:
+            A BioPython DistanceMatrix object.
+        """
+        lower_triangle_matrix = []
+
+        for row_index in range(len(self.matrix)):
+            lower_triangle_row = []
+
+            for column_index in range(row_index + 1):
+                value = float(self.matrix[row_index][column_index])
+                lower_triangle_row.append(value)
+
+            lower_triangle_matrix.append(lower_triangle_row)
+
+        return DistanceMatrix(names=self.names, matrix=lower_triangle_matrix)
