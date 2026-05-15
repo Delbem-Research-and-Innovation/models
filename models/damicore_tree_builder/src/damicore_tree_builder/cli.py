@@ -89,3 +89,34 @@ def build_error_report(error: Exception) -> Dict[str, Any]:
         "status": "error",
         "message": str(error),
     }
+
+
+def run(input_path: str, output_path: str) -> Dict[str, Any]:
+    """
+    Runs the full Neighbor-Joining pipeline.
+
+    Args:
+        input_path: Path to the input distance matrix CSV file.
+        output_path: Path where the Newick tree file will be saved.
+
+    Returns:
+        A dictionary following the execution contract.
+    """
+    input_file_path = Path(input_path)
+    output_file_path = Path(output_path)
+
+    loader = MatrixLoader(str(input_file_path))
+    names, matrix = loader.load()
+
+    builder = NeighborJoining(names, matrix)
+    tree = builder.build_tree()
+
+    writer = NewickWriter(str(output_file_path))
+    generated_path = writer.write(tree)
+
+    return build_success_report(
+        input_path=input_file_path,
+        output_path=generated_path,
+        total_leaf_nodes=len(tree.get_terminals()),
+        total_internal_nodes=len(tree.get_nonterminals()),
+    )
