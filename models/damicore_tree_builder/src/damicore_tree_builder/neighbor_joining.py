@@ -10,6 +10,7 @@ loaded by MatrixLoader, converts them to the format expected by BioPython,
 and then uses BioPython's DistanceTreeConstructor to build the tree.
 """
 
+# Libraries 
 from typing import List
 
 from Bio.Phylo.BaseTree import Tree
@@ -20,7 +21,7 @@ try:
 except ModuleNotFoundError:
     from matrix_loader import MatrixLoader
 
-
+# Neighbor-Joining tree builder class
 class NeighborJoining:
     """
     Builds a tree using the Neighbor-Joining algorithm.
@@ -47,6 +48,7 @@ class NeighborJoining:
         ]
     """
 
+    # Builder initialization
     def __init__(self, names: List[str], matrix: List[List[float]]) -> None:
         """
         Initializes the NeighborJoining tree builder.
