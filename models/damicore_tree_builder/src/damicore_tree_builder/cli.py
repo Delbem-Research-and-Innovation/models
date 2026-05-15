@@ -75,3 +75,17 @@ def build_success_report(
     }
 
 
+def build_error_report(error: Exception) -> Dict[str, Any]:
+    """
+    Builds an error report in JSON format.
+
+    Args:
+        error: Exception raised during execution.
+
+    Returns:
+        A dictionary containing the error result.
+    """
+    return {
+        "status": "error",
+        "message": str(error),
+    }
