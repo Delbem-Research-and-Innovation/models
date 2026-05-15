@@ -36,5 +36,53 @@ class NewickWriter:
         self.output_path = Path(output_path)
 
     # Write method
-    def write(self, tree: Tree) -> None:
-        
+    def write(self, tree: Tree | None) -> None:
+        """
+        Writes the tree to a Newick file.
+
+        Args:
+            tree: BioPython Tree object to be saved.
+
+        Returns:
+            The path to the generated Newick file.
+
+        Raises:
+            ValueError: If the tree is None.
+        """
+
+        if tree is None:
+            raise ValueError("Tree cannot be None.")
+
+        self.output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        Phylo.write(tree, self.output_path, "newick")
+
+        return self.output_path
+    
+
+if __name__ == "__main__":
+    try:
+        from damicore_tree_builder.matrix_loader import MatrixLoader
+        from damicore_tree_builder.neighbor_joining import NeighborJoining
+    except ModuleNotFoundError:
+        from matrix_loader import MatrixLoader
+        from neighbor_joining import NeighborJoining
+
+    input_path = "models/fixtures/distance-matrix-output.csv"
+    output_path = "models/fixtures/output-phylo-tree.newick"
+
+    try:
+        loader = MatrixLoader(input_path)
+        names, matrix = loader.load()
+
+        builder = NeighborJoining(names, matrix)
+        tree = builder.build_tree()
+
+        writer = NewickWriter(output_path)
+        generated_path = writer.write(tree)
+
+        print("Newick tree saved successfully.")
+        print(f"Output file: {generated_path}")
+
+    except (FileNotFoundError, ValueError) as error:
+        print(f"Error while saving Newick tree: {error}")
