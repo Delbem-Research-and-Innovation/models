@@ -46,3 +46,32 @@ def parse_args() -> argparse.Namespace:
 
     return parser.parse_args()
 
+
+def build_success_report(
+    input_path: Path,
+    output_path: Path,
+    total_leaf_nodes: int,
+    total_internal_nodes: int,
+) -> Dict[str, Any]:
+    """
+    Builds the success report following the expected output contract.
+
+    Args:
+        input_path: Path to the input distance matrix.
+        output_path: Path to the generated Newick file.
+        total_leaf_nodes: Number of leaf nodes in the generated tree.
+        total_internal_nodes: Number of internal nodes in the generated tree.
+
+    Returns:
+        A dictionary containing the execution result.
+    """
+    return {
+        "status": "success",
+        "distance_matrix_path": str(input_path),
+        "tree_format": "newick",
+        "total_leaf_nodes": total_leaf_nodes,
+        "total_internal_nodes": total_internal_nodes,
+        "output_file_path": str(output_path),
+    }
+
+
