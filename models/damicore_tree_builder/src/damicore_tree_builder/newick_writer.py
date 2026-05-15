@@ -24,3 +24,17 @@ class NewickWriter:
     only responsibility is to receive a BioPython Tree object and save it in
     Newick format.
     """
+
+    # Builder initialization
+    def __init__(self, output_path: str) -> None:
+        """
+        Initializes the NewickWriter.
+
+        Args:
+            output_path: Path where the Newick file will be saved.
+        """
+        self.output_path = Path(output_path)
+
+    # Write method
+    def write(self, tree: Tree) -> None:
+        
