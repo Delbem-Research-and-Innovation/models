@@ -120,3 +120,24 @@ def run(input_path: str, output_path: str) -> Dict[str, Any]:
         total_leaf_nodes=len(tree.get_terminals()),
         total_internal_nodes=len(tree.get_nonterminals()),
     )
+
+if __name__ == "__main__":
+    """
+    CLI entry point.
+    """
+    args = parse_args()
+
+    try:
+        report = run(args.input, args.output)
+    except (FileNotFoundError, ValueError) as error:
+        report = build_error_report(error)
+
+    print(json.dumps(report, indent=2))
+
+
+# RUN: 
+"""
+python -m models.damicore_tree_builder.src.damicore_tree_builder.cli \
+  --input models/fixtures/distance-matrix-output.csv \
+  --output models/fixtures/output-phylo-tree.newick
+"""
