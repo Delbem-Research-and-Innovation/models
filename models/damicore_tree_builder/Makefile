@@ -8,7 +8,7 @@ dev:
 check:
 	uv run ruff check --fix .
 	uv run ruff format .
-	uv run pyright
+	uv run pyright src tests
 
 test:
 	uv run pytest -v || [ $$? -eq 5 ]

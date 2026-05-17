@@ -1,6 +1,49 @@
 {
   "pythonVersion": "3.12",
+  "typeCheckingMode": "strict",
   "executionEnvironments": [
+    {
+      "root": "models/column_matcher",
+      "extraPaths": [
+        "models/column_matcher/src",
+        "models/column_matcher/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "models/damicore_clusterizer",
+      "extraPaths": [
+        "models/damicore_clusterizer/src",
+        "models/damicore_clusterizer/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "models/damicore_distance",
+      "extraPaths": [
+        "models/damicore_distance/src",
+        "models/damicore_distance/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "models/damicore_normalizer",
+      "extraPaths": [
+        "models/damicore_normalizer/src",
+        "models/damicore_normalizer/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "models/damicore_tree_builder",
+      "extraPaths": [
+        "models/damicore_tree_builder/src",
+        "models/damicore_tree_builder/.venv/lib/python3.12/site-packages"
+      ]
+    },
+    {
+      "root": "models/multimap_map_selector",
+      "extraPaths": [
+        "models/multimap_map_selector/src",
+        "models/multimap_map_selector/.venv/lib/python3.12/site-packages"
+      ]
+    },
     {
       "root": "packages/api",
       "extraPaths": [
@@ -10,34 +53,10 @@
       ]
     },
     {
-      "root": "packages/agent-bill-extractor",
-      "extraPaths": [
-        "packages/agent-bill-extractor/src",
-        "packages/postgresdb/src",
-        "packages/agent-bill-extractor/.venv/lib/python3.12/site-packages"
-      ]
-    },
-    {
       "root": "packages/postgresdb",
       "extraPaths": [
         "packages/postgresdb/src",
         "packages/postgresdb/.venv/lib/python3.12/site-packages"
-      ]
-    },
-    {
-      "root": "packages/agent-core",
-      "extraPaths": [
-        "packages/agent-core/src",
-        "packages/agent-core/.venv/lib/python3.12/site-packages"
-      ]
-    },
-    {
-      "root": "packages/agent-data-catalog",
-      "extraPaths": [
-        "packages/agent-data-catalog/src",
-        "packages/agent-core/src",
-        "packages/postgresdb/src",
-        "packages/agent-data-catalog/.venv/lib/python3.12/site-packages"
       ]
     }
   ]

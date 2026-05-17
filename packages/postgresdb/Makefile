@@ -1,11 +1,13 @@
 .PHONY: dev check test clean
 
+export PYRIGHT_PYTHON_FORCE_VERSION := latest
+
 dev:
 	uv sync --group dev
 
 check:
-	uv run ruff check .
-	uv run ruff format --check .
+	uv run ruff check --fix .
+	uv run ruff format .
 	uv run pyright
 
 test:
