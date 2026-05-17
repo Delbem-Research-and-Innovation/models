@@ -16,9 +16,14 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-from damicore_tree_builder.matrix_loader import MatrixLoader
-from damicore_tree_builder.neighbor_joining import NeighborJoining
-from damicore_tree_builder.newick_writer import NewickWriter
+try:
+    from damicore_tree_builder.matrix_loader import MatrixLoader
+    from damicore_tree_builder.neighbor_joining import NeighborJoining
+    from damicore_tree_builder.newick_writer import NewickWriter
+except ModuleNotFoundError:
+    from matrix_loader import MatrixLoader
+    from neighbor_joining import NeighborJoining
+    from newick_writer import NewickWriter
 
 
 def parse_args() -> argparse.Namespace:
@@ -135,9 +140,7 @@ if __name__ == "__main__":
     print(json.dumps(report, indent=2))
 
 
-# RUN: 
+# RUN: Na raíz do projeto
 """
-python -m models.damicore_tree_builder.src.damicore_tree_builder.cli \
-  --input models/fixtures/distance-matrix-output.csv \
-  --output models/fixtures/output-phylo-tree.newick
+python models/damicore_tree_builder/src/damicore_tree_builder/cli.py   --input models/fixtures/distance-matrix-output.csv   --output models/fixtures/dataset-seade-pop-age/output-phylo-tree-distance-ncd-gzip-cod_distr-ano-idade.newick
 """
