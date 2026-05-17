@@ -25,8 +25,7 @@ import numpy as np
 import pandas as pd
 
 # Constants
-DEFAULT_INPUT_PATH = "models/fixtures/distance-matrix-output.csv"
-DEFAULT_OUTPUT_PATH = "damicore_tree_builder/output/tree-output.nwk"
+DEFAULT_INPUT_PATH = "/models/fixtures/dataset-seade-pop-age/output-distance-ncd-gzip-cod_distr-ano-idade.csv"
 
 # Class
 class MatrixLoader:
