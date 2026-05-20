@@ -1,81 +1,97 @@
-"""
-Neighbor-Joining tree builder module.
+"""Build phylogenetic trees with the Neighbor-Joining algorithm."""
 
-This module provides the NeighborJoining class, responsible for building
-a phylogenetic tree from a distance matrix using the Neighbor-Joining
-algorithm.
+from dataclasses import dataclass, field
 
-The class receives the element names and the full square distance matrix
-loaded by MatrixLoader, converts them to the format expected by BioPython,
-and then uses BioPython's DistanceTreeConstructor to build the tree.
-"""
 
-# Libraries 
-from typing import List
+@dataclass
+class Clade:
+    """A tree node with an optional branch length from its parent."""
 
-from Bio.Phylo.BaseTree import Tree
-from Bio.Phylo.TreeConstruction import DistanceMatrix, DistanceTreeConstructor
+    name: str | None = None
+    branch_length: float = 0.0
+    children: list["Clade"] = field(default_factory=list)
 
-try:
-    from damicore_tree_builder.matrix_loader import MatrixLoader
-except ModuleNotFoundError:
-    from matrix_loader import MatrixLoader
+    @property
+    def is_terminal(self) -> bool:
+        return not self.children
 
-# Neighbor-Joining tree builder class
+
+@dataclass
+class Tree:
+    """Small tree wrapper exposing the methods used by the CLI contract."""
+
+    root: Clade
+
+    def get_terminals(self) -> list[Clade]:
+        return [clade for clade in self._walk(self.root) if clade.is_terminal]
+
+    def get_nonterminals(self) -> list[Clade]:
+        return [clade for clade in self._walk(self.root) if not clade.is_terminal]
+
+    def _walk(self, clade: Clade) -> list[Clade]:
+        clades = [clade]
+        for child in clade.children:
+            clades.extend(self._walk(child))
+        return clades
+
+
 class NeighborJoining:
-    """
-    Builds a tree using the Neighbor-Joining algorithm.
+    """Builds a tree from a full square distance matrix."""
 
-    The NeighborJoining class receives a list of element names and a full
-    square distance matrix. It converts the matrix to BioPython's
-    DistanceMatrix format and applies the Neighbor-Joining algorithm.
-
-    BioPython expects the distance matrix in lower triangular format,
-    including the diagonal. For example, a full matrix like:
-
-        [
-            [0.0, 5.0, 9.0],
-            [5.0, 0.0, 10.0],
-            [9.0, 10.0, 0.0],
-        ]
-
-    must be converted to:
-
-        [
-            [0.0],
-            [5.0, 0.0],
-            [9.0, 10.0, 0.0],
-        ]
-    """
-
-    # Builder initialization
-    def __init__(self, names: List[str], matrix: List[List[float]]) -> None:
-        """
-        Initializes the NeighborJoining tree builder.
-
-        Args:
-            names: List of element names.
-            matrix: Full square distance matrix.
-        """
+    def __init__(self, names: list[str], matrix: list[list[float]]) -> None:
         self.names = names
         self.matrix = matrix
 
-    
-    # Auxiliary functions
+    def build_tree(self) -> Tree:
+        """Build a Neighbor-Joining tree from the configured distances."""
+        self._validate_input()
+
+        active_nodes = list(self.names)
+        clades = {name: Clade(name=name) for name in self.names}
+        distances = self._initial_distances()
+        next_internal_id = 1
+
+        while len(active_nodes) > 2:
+            left, right = self._select_pair(active_nodes, distances)
+            new_node = f"Inner{next_internal_id}"
+            next_internal_id += 1
+
+            left_length, right_length = self._branch_lengths(left, right, active_nodes, distances)
+            clades[left].branch_length = left_length
+            clades[right].branch_length = right_length
+            clades[new_node] = Clade(children=[clades[left], clades[right]])
+
+            for other in active_nodes:
+                if other in {left, right}:
+                    continue
+                distances[frozenset((new_node, other))] = (
+                    self._distance(left, other, distances)
+                    + self._distance(right, other, distances)
+                    - self._distance(left, right, distances)
+                ) / 2.0
+
+            active_nodes = [node for node in active_nodes if node not in {left, right}]
+            active_nodes.append(new_node)
+
+        left, right = active_nodes
+        final_distance = self._distance(left, right, distances) / 2.0
+        clades[left].branch_length = final_distance
+        clades[right].branch_length = final_distance
+
+        return Tree(root=Clade(children=[clades[left], clades[right]]))
+
     def _validate_input(self) -> None:
-        """
-        Validates whether the names and matrix are compatible.
-        """
         if not self.names:
             raise ValueError("The names list cannot be empty.")
+
+        if len(set(self.names)) != len(self.names):
+            raise ValueError("The names list cannot contain duplicates.")
 
         if not self.matrix:
             raise ValueError("The distance matrix cannot be empty.")
 
         if len(self.names) != len(self.matrix):
-            raise ValueError(
-                "The number of names must match the number of matrix rows."
-            )
+            raise ValueError("The number of names must match the number of matrix rows.")
 
         for row in self.matrix:
             if len(row) != len(self.names):
@@ -84,65 +100,68 @@ class NeighborJoining:
                 )
 
         if len(self.names) < 3:
-            raise ValueError(
-                "Neighbor-Joining requires at least 3 elements to build a tree."
+            raise ValueError("Neighbor-Joining requires at least 3 elements to build a tree.")
+
+    def _initial_distances(self) -> dict[frozenset[str], float]:
+        distances: dict[frozenset[str], float] = {}
+        for row_index, left in enumerate(self.names):
+            for column_index, right in enumerate(self.names):
+                if row_index < column_index:
+                    distances[frozenset((left, right))] = float(
+                        self.matrix[row_index][column_index]
+                    )
+        return distances
+
+    def _select_pair(
+        self, active_nodes: list[str], distances: dict[frozenset[str], float]
+    ) -> tuple[str, str]:
+        node_count = len(active_nodes)
+        total_distances = {
+            node: sum(
+                self._distance(node, other, distances)
+                for other in active_nodes
+                if other != node
             )
+            for node in active_nodes
+        }
 
-    def _to_biopython_distance_matrix(self) -> DistanceMatrix:
-        """
-        Converts a full square matrix to BioPython's DistanceMatrix format.
+        best_pair: tuple[str, str] | None = None
+        best_score: float | None = None
+        for left_index, left in enumerate(active_nodes):
+            for right in active_nodes[left_index + 1 :]:
+                score = (
+                    (node_count - 2) * self._distance(left, right, distances)
+                    - total_distances[left]
+                    - total_distances[right]
+                )
+                if best_score is None or score < best_score:
+                    best_score = score
+                    best_pair = (left, right)
 
-        Returns:
-            A BioPython DistanceMatrix object.
-        """
-        lower_triangle_matrix = []
+        if best_pair is None:
+            raise ValueError("Could not select a pair for Neighbor-Joining.")
+        return best_pair
 
-        for row_index in range(len(self.matrix)):
-            lower_triangle_row = []
+    def _branch_lengths(
+        self, left: str, right: str, active_nodes: list[str], distances: dict[frozenset[str], float]
+    ) -> tuple[float, float]:
+        node_count = len(active_nodes)
+        left_total = sum(
+            self._distance(left, other, distances)
+            for other in active_nodes
+            if other != left
+        )
+        right_total = sum(
+            self._distance(right, other, distances) for other in active_nodes if other != right
+        )
+        pair_distance = self._distance(left, right, distances)
+        delta = (left_total - right_total) / (node_count - 2)
 
-            for column_index in range(row_index + 1):
-                value = float(self.matrix[row_index][column_index])
-                lower_triangle_row.append(value)
+        return (pair_distance + delta) / 2.0, (pair_distance - delta) / 2.0
 
-            lower_triangle_matrix.append(lower_triangle_row)
-
-        return DistanceMatrix(names=self.names, matrix=lower_triangle_matrix)
-
-    
-    # Main function
-    def build_tree(self) -> Tree:
-        """
-        Builds a Neighbor-Joining tree from the distance matrix.
-
-        Returns:
-            A BioPython Tree object generated by the Neighbor-Joining algorithm.
-
-        Raises:
-            ValueError: If the input names and matrix are inconsistent.
-        """
-        self._validate_input()
-
-        distance_matrix = self._to_biopython_distance_matrix()
-
-        constructor = DistanceTreeConstructor()
-        tree = constructor.nj(distance_matrix)
-
-        return tree
-    
-if __name__ == "__main__":
-    loader = MatrixLoader()
-
-    try:
-        names, matrix = loader.load()
-
-        builder = NeighborJoining(names, matrix)
-        tree = builder.build_tree()
-
-        print("Neighbor-Joining tree built successfully.")
-        print(f"Number of terminals: {len(tree.get_terminals())}")
-        print(f"Terminal names: {[terminal.name for terminal in tree.get_terminals()]}")
-        print("\nTree:")
-        print(tree)
-
-    except (FileNotFoundError, ValueError) as error:
-        print(f"Error while building Neighbor-Joining tree: {error}")
+    def _distance(
+        self, left: str, right: str, distances: dict[frozenset[str], float]
+    ) -> float:
+        if left == right:
+            return 0.0
+        return distances[frozenset((left, right))]
