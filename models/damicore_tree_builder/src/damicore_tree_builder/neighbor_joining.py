@@ -1,6 +1,8 @@
-"""Build phylogenetic trees with the Neighbor-Joining algorithm."""
+from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+"""Build phylogenetic trees with the Neighbor-Joining algorithm."""
 
 
 @dataclass
@@ -9,10 +11,15 @@ class Clade:
 
     name: str | None = None
     branch_length: float = 0.0
-    children: list["Clade"] = field(default_factory=list)
+    children: list[Clade] | None = None
+
+    def __post_init__(self) -> None:
+        if self.children is None:
+            self.children = []
 
     @property
     def is_terminal(self) -> bool:
+        assert self.children is not None
         return not self.children
 
 
@@ -30,13 +37,16 @@ class Tree:
 
     def _walk(self, clade: Clade) -> list[Clade]:
         clades = [clade]
-        for child in clade.children:
+        for child in clade.children or []:
             clades.extend(self._walk(child))
         return clades
 
 
 class NeighborJoining:
     """Builds a tree from a full square distance matrix."""
+
+    names: list[str]
+    matrix: list[list[float]]
 
     def __init__(self, names: list[str], matrix: list[list[float]]) -> None:
         self.names = names
@@ -46,14 +56,14 @@ class NeighborJoining:
         """Build a Neighbor-Joining tree from the configured distances."""
         self._validate_input()
 
-        active_nodes = list(self.names)
-        clades = {name: Clade(name=name) for name in self.names}
-        distances = self._initial_distances()
+        active_nodes: list[str] = list(self.names)
+        clades: dict[str, Clade] = {name: Clade(name=name) for name in self.names}
+        distances: dict[frozenset[str], float] = self._initial_distances()
         next_internal_id = 1
 
         while len(active_nodes) > 2:
             left, right = self._select_pair(active_nodes, distances)
-            new_node = f"Inner{next_internal_id}"
+            new_node: str = f"Inner{next_internal_id}"
             next_internal_id += 1
 
             left_length, right_length = self._branch_lengths(left, right, active_nodes, distances)
@@ -118,9 +128,7 @@ class NeighborJoining:
         node_count = len(active_nodes)
         total_distances = {
             node: sum(
-                self._distance(node, other, distances)
-                for other in active_nodes
-                if other != node
+                self._distance(node, other, distances) for other in active_nodes if other != node
             )
             for node in active_nodes
         }
@@ -147,9 +155,7 @@ class NeighborJoining:
     ) -> tuple[float, float]:
         node_count = len(active_nodes)
         left_total = sum(
-            self._distance(left, other, distances)
-            for other in active_nodes
-            if other != left
+            self._distance(left, other, distances) for other in active_nodes if other != left
         )
         right_total = sum(
             self._distance(right, other, distances) for other in active_nodes if other != right
@@ -159,9 +165,7 @@ class NeighborJoining:
 
         return (pair_distance + delta) / 2.0, (pair_distance - delta) / 2.0
 
-    def _distance(
-        self, left: str, right: str, distances: dict[frozenset[str], float]
-    ) -> float:
+    def _distance(self, left: str, right: str, distances: dict[frozenset[str], float]) -> float:
         if left == right:
             return 0.0
         return distances[frozenset((left, right))]

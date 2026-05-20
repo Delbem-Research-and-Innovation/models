@@ -10,10 +10,7 @@ def test_run_builds_newick_and_report(tmp_path: Path) -> None:
     input_path = tmp_path / "matrix.csv"
     output_path = tmp_path / "tree.newick"
     input_path.write_text(
-        ",A,B,C\n"
-        "A,0,5,9\n"
-        "B,5,0,10\n"
-        "C,9,10,0\n",
+        ",A,B,C\nA,0,5,9\nB,5,0,10\nC,9,10,0\n",
         encoding="utf-8",
     )
 

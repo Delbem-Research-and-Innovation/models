@@ -9,10 +9,7 @@ from damicore_tree_builder.matrix_loader import MatrixLoader
 def test_loads_valid_distance_matrix(tmp_path: Path) -> None:
     matrix_path = tmp_path / "matrix.csv"
     matrix_path.write_text(
-        ",A,B,C\n"
-        "A,0,5,9\n"
-        "B,5,0,10\n"
-        "C,9,10,0\n",
+        ",A,B,C\nA,0,5,9\nB,5,0,10\nC,9,10,0\n",
         encoding="utf-8",
     )
 
@@ -30,10 +27,7 @@ def test_loads_valid_distance_matrix(tmp_path: Path) -> None:
 def test_rejects_mismatched_labels(tmp_path: Path) -> None:
     matrix_path = tmp_path / "matrix.csv"
     matrix_path.write_text(
-        ",A,B,C\n"
-        "A,0,5,9\n"
-        "B,5,0,10\n"
-        "D,9,10,0\n",
+        ",A,B,C\nA,0,5,9\nB,5,0,10\nD,9,10,0\n",
         encoding="utf-8",
     )
 
@@ -45,10 +39,7 @@ def test_rejects_mismatched_labels(tmp_path: Path) -> None:
 def test_rejects_non_symmetric_matrix(tmp_path: Path) -> None:
     matrix_path = tmp_path / "matrix.csv"
     matrix_path.write_text(
-        ",A,B,C\n"
-        "A,0,5,9\n"
-        "B,4,0,10\n"
-        "C,9,10,0\n",
+        ",A,B,C\nA,0,5,9\nB,4,0,10\nC,9,10,0\n",
         encoding="utf-8",
     )
 
