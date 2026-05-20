@@ -73,7 +73,7 @@ jobs:
             fi
           fi
 
-          MATRIX=$(echo "$PKGS" | (grep -v '^$' || true) | jq -R . | jq -sc .)
+          MATRIX=$(echo "$PKGS" | (grep -v '^$' || true) | jq -R . | jq -sc . || echo "[]")
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
           [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
 
@@ -115,7 +115,7 @@ jobs:
     steps:
       - name: Evaluate
         run: |
-          if [ "${{ needs.detect.result }}" = "failure" ] || \
+          if [ "${{ needs.detect.result }}" != "success" ] || \
              [ "${{ needs.ci.result }}" = "failure" ] || \
              [ "${{ needs.ci.result }}" = "cancelled" ]; then
             echo "::error::CI failed"
