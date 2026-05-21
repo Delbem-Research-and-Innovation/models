@@ -13,111 +13,45 @@ permissions:
   contents: read
 
 jobs:
-  detect:
-    name: Detect changes
+  discover:
+    name: Discover models
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.changed.outputs.matrix }}
-      any: ${{ steps.changed.outputs.any }}
+      matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Find changed packages
-        id: changed
+      - name: List models
+        id: find
         run: |
-          set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-          else
-            BASE="${{ github.event.before }}"
-          fi
-
-          # Helper: every package/model that has a Makefile.
-          all_packages() {
-            find models packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
-              | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done \
-              | sort -u
-          }
-
-          # Null or zero SHA → first push / force-push: build everything.
-          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
-            PKGS=$(all_packages)
-          else
-            CHANGED=$(git diff --name-only "$BASE" HEAD)
-
-            # Root infra changes affect every package.
-            if echo "$CHANGED" | grep -qE '^(Makefile|pyrightconfig\.json|\.python-version)$'; then
-              PKGS=$(all_packages)
-            else
-              # Packages whose own files changed.
-              PKGS=$(echo "$CHANGED" \
-                | (grep -E '^(models|packages)/' || true) \
-                | awk -F/ '{print $1"/"$2}' \
-                | sort -u \
-                | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done)
-
-              # Shared fixtures changed → re-test every model.
-              if echo "$CHANGED" | grep -qE '^models/fixtures/'; then
-                MORE=$(find models -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
-                  | while IFS= read -r d; do [ -f "$d/Makefile" ] && [ -f "$d/pyproject.toml" ] && echo "$d"; done)
-                PKGS=$(printf '%s\n%s' "$PKGS" "$MORE" | sort -u)
-              fi
-
-              # Dependency propagation: postgresdb → api.
-              if echo "$PKGS" | grep -qx 'packages/postgresdb'; then
-                [ -f packages/api/Makefile ] && PKGS=$(printf '%s\npackages/api' "$PKGS" | sort -u)
-              fi
-            fi
-          fi
-
-          MATRIX=$(echo "$PKGS" | (grep -v '^$' || true) | jq -R . | jq -sc .)
+          MATRIX=$(find models -maxdepth 2 -name pyproject.toml \
+            | xargs -n1 dirname | sort | jq -R . | jq -sc .)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-          [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
 
   ci:
     name: CI — ${{ matrix.package }}
-    needs: detect
-    if: needs.detect.outputs.any == 'true'
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.detect.outputs.matrix) }}
+        package: ${{ fromJson(needs.discover.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: "${{ matrix.package }}/uv.lock"
+      - run: make -C ${{ matrix.package }} dev
+      - run: make -C ${{ matrix.package }} check
+      - run: make -C ${{ matrix.package }} test
 
-      - name: Install
-        run: make -C ${{ matrix.package }} dev
-
-      - name: Check
-        run: make -C ${{ matrix.package }} check
-
-      - name: Test
-        run: make -C ${{ matrix.package }} test
-
-  # Gate: single fixed-name job for branch protection required checks.
-  # Always runs so GitHub doesn't hang when the matrix is empty (no changes).
   gate:
     name: CI
     if: always()
-    needs: [detect, ci]
+    needs: ci
     runs-on: ubuntu-latest
     steps:
-      - name: Evaluate
-        run: |
-          if [ "${{ needs.detect.result }}" = "failure" ] || \
-             [ "${{ needs.ci.result }}" = "failure" ] || \
-             [ "${{ needs.ci.result }}" = "cancelled" ]; then
-            echo "::error::CI failed"
-            exit 1
-          fi
+      - run: |
+          [ "${{ needs.ci.result }}" = "success" ] || exit 1
