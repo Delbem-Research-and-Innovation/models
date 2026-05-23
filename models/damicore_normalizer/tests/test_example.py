@@ -42,3 +42,22 @@ def test_invalid_split_strategy_type_raises(contract: NormalizerInput) -> None:
 def test_sample_files_names_has_three(contract: NormalizerInput) -> None:
     result = normalize_dataset(contract)
     assert len(result["sample_files_names"]) == 3
+
+
+@pytest.mark.unit
+def test_output_file_has_no_header(contract: NormalizerInput) -> None:
+    result = normalize_dataset(contract)
+    output_dir = Path(result["output_directory_path"])
+    sample_file = output_dir / "80001_2000_00a04.txt"
+
+    content = sample_file.read_text(encoding="latin-1")
+
+    assert "sexo" not in content
+    assert "populacao" not in content
+
+
+@pytest.mark.unit
+def test_naming_convention(contract: NormalizerInput) -> None:
+    result = normalize_dataset(contract)
+
+    assert result["naming_convention"] == "{cod_distr}_{ano}_{Idade}.txt"
