@@ -13,5 +13,8 @@ check:
 test:
 	uv run pytest -v || [ $$? -eq 5 ]
 
+run:
+	python3 -m multimap_map_selector.cli --input . --output test_results_cli --batch
+
 clean:
 	rm -rf .venv .coverage dist
