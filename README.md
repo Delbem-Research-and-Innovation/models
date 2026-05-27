@@ -2,6 +2,29 @@
 
 Monorepo of research models. Each directory under `models/` is an independent Python package; `packages/` holds shared infrastructure.
 
+## Linux dev environment setup
+
+Install `uv` (Python toolchain manager):
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env   # or restart the shell
+```
+
+Install `pre-commit`:
+
+```bash
+uv tool install pre-commit
+```
+
+`make` ships with `build-essential` above. Verify the stack:
+
+```bash
+uv --version
+make --version
+pre-commit --version
+```
+
 ## Prerequisites
 
 `uv` and `pre-commit` on your machine.

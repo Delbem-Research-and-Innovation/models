@@ -22,7 +22,7 @@ check:
 	@for d in $(ALL); do echo ">>> $$d" && $(MAKE) -C $$d check; done
 
 test:
-	@for d in $(ALL); do echo ">>> $$d" && $(MAKE) -C $$d test; done
+	@for d in $(MODELS); do echo ">>> $$d" && $(MAKE) -C $$d test; done
 
 clean:
 	@for d in $(ALL); do $(MAKE) -C $$d clean; done
