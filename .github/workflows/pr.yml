@@ -13,19 +13,15 @@ permissions:
   contents: read
 
 jobs:
-  detect:
-    name: Detect changes
+  discover:
+    name: Discover models
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.changed.outputs.matrix }}
-      any: ${{ steps.changed.outputs.any }}
+      matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Find changed packages
-        id: changed
+      - name: List models
+        id: find
         run: |
           set -euo pipefail
 
@@ -75,42 +71,31 @@ jobs:
 
           MATRIX=$(echo "$PKGS" | (grep -v '^$' || true) | jq -R . | jq -sc . || echo "[]")
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-          [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
 
   ci:
     name: CI — ${{ matrix.package }}
-    needs: detect
-    if: needs.detect.outputs.any == 'true'
+    needs: discover
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.detect.outputs.matrix) }}
+        package: ${{ fromJson(needs.discover.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
           enable-cache: true
           cache-dependency-glob: "${{ matrix.package }}/uv.lock"
+      - run: make -C ${{ matrix.package }} dev
+      - run: make -C ${{ matrix.package }} check
+      - run: make -C ${{ matrix.package }} test
 
-      - name: Install
-        run: make -C ${{ matrix.package }} dev
-
-      - name: Check
-        run: make -C ${{ matrix.package }} check
-
-      - name: Test
-        run: make -C ${{ matrix.package }} test
-
-  # Gate: single fixed-name job for branch protection required checks.
-  # Always runs so GitHub doesn't hang when the matrix is empty (no changes).
   gate:
     name: CI
     if: always()
-    needs: [detect, ci]
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Evaluate
