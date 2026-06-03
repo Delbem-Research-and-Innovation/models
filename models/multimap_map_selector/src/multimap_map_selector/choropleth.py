@@ -54,7 +54,7 @@ def generate_choropleth_json(
 
     # Read and aggregate (support optional normalization)
     agg: dict[str, int] = {}
-    years = set()
+    years: set[int] = set()
     has_age = False
     age_target = "60 a 64"
     with source_file.open("r", encoding="utf-8", errors="replace", newline="") as fh:
@@ -62,17 +62,18 @@ def generate_choropleth_json(
         
         for row in reader:
             # collect years
-            if "ano" in row and row.get("ano"):
+            ano_str = row.get("ano")
+            if "ano" in row and ano_str:
                 try:
-                    years.add(int(row.get("ano")))
-                except Exception:
+                    years.add(int(ano_str))
+                except (ValueError, TypeError):
                     pass
 
             if "Idade" in row and row.get("Idade") == age_target:
                 has_age = True
 
     # Decide filter: if age present, use latest year and that age
-    year_to_use = max(years) if years else None
+    year_to_use: int | None = max(years) if years else None
 
     with source_file.open("r", encoding="utf-8", errors="replace", newline="") as fh:
         reader = csv.DictReader(fh, delimiter=delimiter)
@@ -93,20 +94,26 @@ def generate_choropleth_json(
 
             # Compute value (optionally normalise by population/area)
             raw_val = 0.0
-            try:
-                raw_val = float(row.get(value_column) or 0)
-            except Exception:
+            value_str = row.get(value_column)
+            if value_str:
                 try:
-                    raw_val = float(row.get(value_column).replace(',', '.'))
-                except Exception:
-                    raw_val = 0.0
-
-            if spec.normalize_by and spec.normalize_by in row and row.get(spec.normalize_by):
+                    raw_val = float(value_str)
+                except ValueError:
+                    try:
+                        raw_val = float(value_str.replace(',', '.'))
+                    except (ValueError, AttributeError):
+                        raw_val = 0.0
+            
+            normalize_str = None
+            if spec.normalize_by and spec.normalize_by in row:
+                normalize_str = row.get(spec.normalize_by)
+            
+            if normalize_str:
                 try:
-                    denom = float(row.get(spec.normalize_by) or 0)
+                    denom = float(normalize_str)
                     # per 1000 inhabitants
                     val = (raw_val / denom) * 1000 if denom > 0 else 0
-                except Exception:
+                except (ValueError, ZeroDivisionError):
                     val = raw_val
             else:
                 val = raw_val
@@ -114,9 +121,11 @@ def generate_choropleth_json(
             # aggregate as integer for JSON simplicity
             try:
                 ival = int(round(val))
-            except Exception:
+            except (ValueError, TypeError):
                 ival = 0
-            agg[key] = agg.get(key, 0) + ival
+            
+            if key is not None:
+                agg[key] = agg.get(key, 0) + ival
 
     # Build ordered values and mapData entries
     items = list(agg.items())
