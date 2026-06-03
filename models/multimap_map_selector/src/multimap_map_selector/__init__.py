@@ -11,7 +11,6 @@ from pathlib import Path
 
 from .profiling import profile_dataset
 from .rules import select_map_type
-from .serialization import serialize_visualization_spec
 from .choropleth import generate_choropleth_json
 from .types import RecommenderStrategy, RecommendationResult, VisualizationSpec
 

@@ -42,6 +42,12 @@ def generate_choropleth_json(
         output_directory = Path.cwd()
     output_directory.mkdir(parents=True, exist_ok=True)
 
+    # --- LÓGICA DINÂMICA DE ID ---
+    # Usa o .stem do Path para extrair apenas o nome do arquivo (ex: "raw-dataset-seade-pop-age")
+    base_name = source_file.stem
+    dynamic_spec_id = f"{base_name}--choropleth"
+    # -----------------------------
+
     delimiter = profile.delimiter
     join_key = spec.join_key
     value_column = spec.value_column
@@ -54,7 +60,6 @@ def generate_choropleth_json(
     with source_file.open("r", encoding="utf-8", errors="replace", newline="") as fh:
         reader = csv.DictReader(fh, delimiter=delimiter)
         
-        fieldnames = reader.fieldnames or []
         for row in reader:
             # collect years
             if "ano" in row and row.get("ano"):
@@ -127,39 +132,44 @@ def generate_choropleth_json(
         _percentile(sorted_values, 0.8),
     ]
 
-    mapdata_id = f"{spec.id}__values"
+    mapdata_id = f"{dynamic_spec_id}__values"
     mapdata = [
         {"geometryId": str(i + 1), "value": v} for i, (_, v) in enumerate(items)
     ]
 
     # Compose JSON structure
     payload: dict[str, Any] = {
-        "id": spec.id,
+        "id": dynamic_spec_id,
         "engine": spec.engine,
         "view": {"center": DEFAULT_CENTER, "zoom": 9},
         "sources": [
             {
-                "id": f"{spec.id}__geo",
+                "id": f"{dynamic_spec_id}__geo",
                 "type": "geojson",
                 "data": "https://example.com/geojson_placeholder.geojson",
             }
         ],
         "layers": [
             {
-                "id": f"{spec.id}__choropleth",
-                "sourceId": f"{spec.id}__geo",
+                "id": f"{dynamic_spec_id}__layer",
+                "sourceId": f"{dynamic_spec_id}__geo",
                 "geometry": "polygon",
                 "mapDataId": mapdata_id,
-                "activeLegendId": f"{spec.id}__legend",
+                "activeLegendId": f"{dynamic_spec_id}__legend",
                 "paint": {"lineColor": "#000000", "fillOpacity": 1},
             }
         ],
         "mapData": [
-            {"mapDataId": mapdata_id, "mapId": f"{spec.id}__geo", "joinKey": join_key, "data": mapdata}
+            {
+                "mapDataId": mapdata_id,
+                "mapId": f"{dynamic_spec_id}__geo",
+                "joinKey": join_key,
+                "data": mapdata,
+            }
         ],
         "legends": [
             {
-                "id": f"{spec.id}__legend",
+                "id": f"{dynamic_spec_id}__legend",
                 "colorBy": {
                     "type": "quantitative",
                     "property": "value",
@@ -173,14 +183,15 @@ def generate_choropleth_json(
             {
                 "type": "aggregation",
                 "message": (
-                    "This choropleth aggregates data by spatial units. Results may change with different"
-                    " spatial units (MAUP). Consider normalising by population or area where appropriate."
+                    "This choropleth aggregates data by spatial units. Results "
+                    "may change with different spatial units (MAUP). Consider "
+                    "normalising by population or area where appropriate."
                 ),
             }
         ],
     }
 
-    output_path = output_directory / f"visualization-spec-{spec.id}.json"
+    output_path = output_directory / f"visualization-spec-{dynamic_spec_id}.json"
     with output_path.open("w", encoding="utf-8") as fh:
         json.dump(payload, fh, ensure_ascii=False, indent=2)
 
