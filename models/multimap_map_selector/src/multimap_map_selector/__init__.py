@@ -51,11 +51,17 @@ def recommend_visualization_spec(
     profile = profile_dataset(source_path)
     candidate = select_map_type(profile, strategy)
     if candidate is None:
+        reason = (
+            "No spatial columns found in the dataset. "
+            "Choropleth visualization requires geographic identifiers."
+            if not profile.spatial_columns
+            else "No map type matches the dataset structure."
+        )
         return RecommendationResult(
             status="failure",
             source_file=str(source_path),
             visualization_spec={
-                "reason": "No map type matches the dataset structure.",
+                "reason": reason,
             },
             output_spec_path="",
         )

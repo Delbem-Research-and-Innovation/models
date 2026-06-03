@@ -150,6 +150,9 @@ def generate_choropleth_json(
     payload: dict[str, Any] = {
         "id": dynamic_spec_id,
         "engine": spec.engine,
+        "layer_type": "choropleth",
+        "join_key": join_key,
+        "value_column": value_column,
         "view": {"center": DEFAULT_CENTER, "zoom": 9},
         "sources": [
             {
