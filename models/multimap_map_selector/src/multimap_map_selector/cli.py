@@ -53,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if result.status == 'success':
             spec = result.visualization_spec
-            layer = spec.get('layer_type') if isinstance(spec, dict) else None
+            layer = spec.get('layer_type')
             print(f.name, '->', result.status, 'layer:', layer, 'json:', result.output_spec_path)
         else:
             print(f.name, '->', result.status, 'reason:', result.visualization_spec.get('reason'))
