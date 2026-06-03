@@ -23,8 +23,7 @@ from . import recommend_visualization_spec
 
 def iter_csvs(path: Path) -> Iterable[Path]:
     if path.is_dir():
-        for p in sorted(path.glob('*.csv')):
-            yield p
+        yield from sorted(path.glob('*.csv'))
     else:
         yield path
 
