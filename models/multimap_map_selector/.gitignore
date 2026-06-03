@@ -1,0 +1,17 @@
+# Generated data files
+*.csv
+*.json
+
+# Test output directories
+test_results_*/
+tmp_out*/
+
+# PDFs and other documentation generated during development
+*.pdf
+
+# Python cache and environment
+__pycache__/
+*.pyc
+.venv/
+.coverage
+dist/

@@ -1,9 +1,0 @@
-{
-  "id": "cod_distr_populacao_choropleth",
-  "engine": "maplibre",
-  "layer_type": "choropleth",
-  "data_points_mapped": 36864,
-  "join_key": "cod_distr",
-  "value_column": "populacao",
-  "rationale": "Spatial areas with a quantitative variable are suitable for choropleth visualization."
-}
