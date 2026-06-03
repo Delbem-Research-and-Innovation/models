@@ -43,16 +43,22 @@ NUMERIC_KEYWORDS = (
 def detect_delimiter(first_line: str) -> str:
     """Detect the most likely delimiter from the header line.
 
-    Prioritises `;` when it appears at least as often as `,` because many
-    fixtures here use semicolon-delimited CSVs.
+    Uses Python's built-in csv.Sniffer for robust detection, falling
+    back to a simple heuristic count if sniffing fails.
     """
-    if ";" in first_line and first_line.count(";") >= first_line.count(","):
-        return ";"
-    if "," in first_line:
+    try:
+        # Sniffer is great at figuring out standard CSV dialects dynamically
+        dialect = csv.Sniffer().sniff(first_line, delimiters=";, \t")
+        return dialect.delimiter
+    except csv.Error:
+        # Fallback heuristic: prioritises `;` when it appears at least as often as `,`
+        if ";" in first_line and first_line.count(";") >= first_line.count(","):
+            return ";"
+        if "," in first_line:
+            return ","
+        if "\t" in first_line:
+            return "\t"
         return ","
-    if "\t" in first_line:
-        return "\t"
-    return ","
 
 
 def normalize_column_name(column_name: str) -> str:
@@ -98,7 +104,8 @@ def profile_dataset(source_file_path: Path) -> DatasetProfile:
         spatial_columns = [column for column in columns if is_spatial_column_name(column)]
         numeric_columns = [column for column in columns if is_numeric_column_name(column)]
         categorical_columns = [
-            column for column in columns if column not in spatial_columns and column not in numeric_columns
+            column for column in columns
+            if column not in spatial_columns and column not in numeric_columns
         ]
 
         # Sample rows to detect specific patterns (e.g. age group '60 a 64') and
@@ -126,7 +133,10 @@ def profile_dataset(source_file_path: Path) -> DatasetProfile:
 
     # Detect point coordinate columns by name presence
     normalized_cols = [normalize_column_name(c) for c in columns]
-    has_point_coords = any("lat" in c for c in normalized_cols) and any("lon" in c or "long" in c for c in normalized_cols)
+    has_point_coords = (
+        any("lat" in c for c in normalized_cols) and
+        any("lon" in c or "long" in c for c in normalized_cols)
+    )
 
     return DatasetProfile(
         source_file=source_file_path,

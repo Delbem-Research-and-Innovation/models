@@ -10,7 +10,9 @@ from __future__ import annotations
 from .types import DatasetProfile, RecommenderStrategy, VisualizationSpec
 
 
-def select_map_type(profile: DatasetProfile, strategy: RecommenderStrategy) -> VisualizationSpec | None:
+def select_map_type(
+    profile: DatasetProfile, strategy: RecommenderStrategy
+) -> VisualizationSpec | None:
     """Select a map type for the given profile.
 
     Behaviour with prioritized rules:

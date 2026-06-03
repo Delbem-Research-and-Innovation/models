@@ -89,14 +89,20 @@ for key, total in pop_total.items():
 
 with open(cwd / '1_mapa_coropletico.csv', 'w', encoding='utf-8', newline='') as f:
     writer = csv.writer(f, delimiter=';')
-    writer.writerow(['cod_distr', 'nome_distr', 'ano', 'populacao_total', 'populacao_idosa', 'taxa_envelhecimento_perc', 'leitos_por_mil_hab'])
+    writer.writerow([
+        'cod_distr', 'nome_distr', 'ano', 'populacao_total',
+        'populacao_idosa', 'taxa_envelhecimento_perc', 'leitos_por_mil_hab'
+    ])
     for row in coropletico_rows:
         writer.writerow(row)
 
 # 3. Proportional symbols
 with open(cwd / '2_mapa_simbolos_proporcionais.csv', 'w', encoding='utf-8', newline='') as f:
     writer = csv.writer(f, delimiter=';')
-    writer.writerow(['cod_distr', 'nome_distr', 'latitude', 'longitude', 'total_centros_saude_idosos', 'atendimentos_totais_ano'])
+    writer.writerow([
+        'cod_distr', 'nome_distr', 'latitude', 'longitude',
+        'total_centros_saude_idosos', 'atendimentos_totais_ano'
+    ])
     for i, cod in enumerate(codigos_distr):
         writer.writerow([
             cod,
@@ -120,7 +126,10 @@ with open(cwd / '3_mapa_densidade_pontos.csv', 'w', encoding='utf-8', newline=''
 n_ocorrencias = 50000
 with open(cwd / '4_mapa_calor_hexbin.csv', 'w', encoding='utf-8', newline='') as f:
     writer = csv.writer(f, delimiter=';')
-    writer.writerow(['id_atendimento', 'latitude_ocorrencia', 'longitude_ocorrencia', 'idade_paciente', 'tempo_deslocamento_min'])
+    writer.writerow([
+        'id_atendimento', 'latitude_ocorrencia', 'longitude_ocorrencia',
+        'idade_paciente', 'tempo_deslocamento_min'
+    ])
     for i in range(1, n_ocorrencias + 1):
         lat = lat_base + random.gauss(0, 0.08)
         lon = lon_base + random.gauss(0, 0.08)
@@ -131,7 +140,10 @@ with open(cwd / '4_mapa_calor_hexbin.csv', 'w', encoding='utf-8', newline='') as
 # 6. Small multiples
 with open(cwd / '5_mapa_small_multiples.csv', 'w', encoding='utf-8', newline='') as f:
     writer = csv.writer(f, delimiter=';')
-    writer.writerow(['cod_distr', 'nome_distr', 'ano', 'taxa_envelhecimento_perc', 'leitos_por_mil_hab', 'cobertura_esf_perc', 'indice_vulnerabilidade'])
+    writer.writerow([
+        'cod_distr', 'nome_distr', 'ano', 'taxa_envelhecimento_perc',
+        'leitos_por_mil_hab', 'cobertura_esf_perc', 'indice_vulnerabilidade'
+    ])
     for idd, nome, ano, total, idosos, taxa, leitos in coropletico_rows:
         cobertura = round(random.uniform(30, 95), 2)
         indice = round(random.uniform(0.1, 0.9), 3)
