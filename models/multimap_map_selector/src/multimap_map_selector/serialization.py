@@ -12,7 +12,10 @@ from pathlib import Path
 from .types import VisualizationSpec
 
 
-def serialize_visualization_spec(spec: VisualizationSpec, output_directory: Path | None = None) -> Path:
+def serialize_visualization_spec(
+    spec: VisualizationSpec,
+    output_directory: Path | None = None,
+) -> Path:
     """Write `spec` to `output_directory/<spec.id>.json` and return the Path.
 
     If `output_directory` is None the current working directory is used. The

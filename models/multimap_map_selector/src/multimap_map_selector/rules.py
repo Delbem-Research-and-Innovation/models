@@ -77,7 +77,8 @@ def _match_choropleth(profile: DatasetProfile) -> VisualizationSpec | None:
     # Prefer an explicit rate-like column if present
     def _is_rate_like(name: str) -> bool:
         n = name.lower()
-        return any(tok in n for tok in ("taxa", "perc", "percent", "rate", "per_1000", "per_10000", "per_mil"))
+        tokens = ("taxa", "perc", "percent", "rate", "per_1000", "per_10000", "per_mil")
+        return any(tok in n for tok in tokens)
 
     rate_cols = [c for c in profile.numeric_columns if _is_rate_like(c)]
     if rate_cols:
@@ -155,7 +156,10 @@ def _match_proportional_symbol(profile: DatasetProfile) -> VisualizationSpec | N
         data_points_mapped=profile.row_count,
         join_key=join_key,
         value_column=value_column,
-        rationale="Counts or volumes in geographic zones can also be represented with proportional symbols.",
+        rationale=(
+            "Counts or volumes in geographic zones can also be "
+            "represented with proportional symbols."
+        ),
     )
 
 
@@ -198,7 +202,10 @@ def _match_small_multiples(profile: DatasetProfile) -> VisualizationSpec | None:
         data_points_mapped=profile.row_count,
         join_key=profile.spatial_columns[0],
         value_column=profile.numeric_columns[0],
-        rationale="Multiple quantitative variables with geographic units benefit from small multiples.",
+        rationale=(
+            "Multiple quantitative variables with geographic units "
+            "benefit from small multiples."
+        ),
     )
 
 
