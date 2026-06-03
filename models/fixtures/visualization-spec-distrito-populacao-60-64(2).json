@@ -1,0 +1,148 @@
+{
+  "id": "distrito-municipal-2025--populacao-60-a-64",
+  "engine": "maplibre",
+  "view": {
+    "center": [
+      -46.6361,
+      -23.5475
+    ],
+    "zoom": 9
+  },
+  "sources": [
+    {
+      "id": "distrito-municipal-2025--populacao-60-a-64__geo",
+      "type": "geojson",
+      "data": "https://cms.simple4decision.com/uploads/geoportal_distrito_municipal_v2_CRS_84_925278b5ef.geojson"
+    }
+  ],
+  "layers": [
+    {
+      "id": "distrito-municipal-2025--populacao-60-a-64__choropleth",
+      "sourceId": "distrito-municipal-2025--populacao-60-a-64__geo",
+      "geometry": "polygon",
+      "mapDataId": "distrito-municipal-2025--populacao-60-a-64__values",
+      "activeLegendId": "distrito-municipal-2025--populacao-60-a-64__legend",
+      "paint": {
+        "lineColor": "#000000",
+        "fillOpacity": 1
+      }
+    }
+  ],
+  "mapData": [
+    {
+      "mapDataId": "distrito-municipal-2025--populacao-60-a-64__values",
+      "mapId": "distrito-municipal-2025--populacao-60-a-64__geo",
+      "joinKey": "cd_distrito_municipal",
+      "data": [
+        { "geometryId": "1", "value": 5480 },
+        { "geometryId": "2", "value": 3095 },
+        { "geometryId": "3", "value": 4258 },
+        { "geometryId": "4", "value": 4965 },
+        { "geometryId": "5", "value": 5465 },
+        { "geometryId": "6", "value": 939 },
+        { "geometryId": "7", "value": 4251 },
+        { "geometryId": "8", "value": 2715 },
+        { "geometryId": "9", "value": 1953 },
+        { "geometryId": "10", "value": 1620 },
+        { "geometryId": "11", "value": 12708 },
+        { "geometryId": "12", "value": 3283 },
+        { "geometryId": "13", "value": 7210 },
+        { "geometryId": "14", "value": 2351 },
+        { "geometryId": "15", "value": 4123 },
+        { "geometryId": "16", "value": 7229 },
+        { "geometryId": "17", "value": 10808 },
+        { "geometryId": "18", "value": 7727 },
+        { "geometryId": "19", "value": 13514 },
+        { "geometryId": "20", "value": 5764 },
+        { "geometryId": "21", "value": 4966 },
+        { "geometryId": "22", "value": 13507 },
+        { "geometryId": "23", "value": 10493 },
+        { "geometryId": "24", "value": 6941 },
+        { "geometryId": "25", "value": 10303 },
+        { "geometryId": "26", "value": 3802 },
+        { "geometryId": "27", "value": 7280 },
+        { "geometryId": "28", "value": 6077 },
+        { "geometryId": "29", "value": 8349 },
+        { "geometryId": "30", "value": 17722 },
+        { "geometryId": "31", "value": 4991 },
+        { "geometryId": "32", "value": 6385 },
+        { "geometryId": "33", "value": 7127 },
+        { "geometryId": "34", "value": 6944 },
+        { "geometryId": "35", "value": 6248 },
+        { "geometryId": "36", "value": 11260 },
+        { "geometryId": "37", "value": 10583 },
+        { "geometryId": "38", "value": 13207 },
+        { "geometryId": "39", "value": 4966 },
+        { "geometryId": "40", "value": 1431 },
+        { "geometryId": "41", "value": 2940 },
+        { "geometryId": "42", "value": 10580 },
+        { "geometryId": "43", "value": 14321 },
+        { "geometryId": "44", "value": 5971 },
+        { "geometryId": "45", "value": 5930 },
+        { "geometryId": "46", "value": 13995 },
+        { "geometryId": "47", "value": 6635 },
+        { "geometryId": "48", "value": 4674 },
+        { "geometryId": "49", "value": 4343 },
+        { "geometryId": "50", "value": 4216 },
+        { "geometryId": "51", "value": 7070 },
+        { "geometryId": "52", "value": 436 },
+        { "geometryId": "53", "value": 5279 },
+        { "geometryId": "54", "value": 3322 },
+        { "geometryId": "55", "value": 6801 },
+        { "geometryId": "56", "value": 983 },
+        { "geometryId": "57", "value": 3423 },
+        { "geometryId": "58", "value": 7712 },
+        { "geometryId": "59", "value": 7999 },
+        { "geometryId": "60", "value": 7682 },
+        { "geometryId": "61", "value": 4124 },
+        { "geometryId": "62", "value": 4517 },
+        { "geometryId": "63", "value": 9988 },
+        { "geometryId": "64", "value": 5170 },
+        { "geometryId": "65", "value": 5055 },
+        { "geometryId": "66", "value": 3733 },
+        { "geometryId": "67", "value": 6637 },
+        { "geometryId": "68", "value": 14909 },
+        { "geometryId": "69", "value": 5533 },
+        { "geometryId": "70", "value": 7595 },
+        { "geometryId": "71", "value": 5174 },
+        { "geometryId": "72", "value": 9167 },
+        { "geometryId": "73", "value": 8278 },
+        { "geometryId": "74", "value": 4611 },
+        { "geometryId": "75", "value": 7857 },
+        { "geometryId": "76", "value": 15250 },
+        { "geometryId": "77", "value": 9129 },
+        { "geometryId": "78", "value": 1219 },
+        { "geometryId": "79", "value": 2310 },
+        { "geometryId": "80", "value": 7047 },
+        { "geometryId": "81", "value": 11545 },
+        { "geometryId": "82", "value": 6094 },
+        { "geometryId": "83", "value": 8233 },
+        { "geometryId": "84", "value": 7450 },
+        { "geometryId": "85", "value": 6165 },
+        { "geometryId": "86", "value": 3325 },
+        { "geometryId": "87", "value": 7524 },
+        { "geometryId": "88", "value": 2982 },
+        { "geometryId": "89", "value": 5758 },
+        { "geometryId": "90", "value": 8905 },
+        { "geometryId": "91", "value": 6371 },
+        { "geometryId": "92", "value": 6688 },
+        { "geometryId": "93", "value": 6630 },
+        { "geometryId": "94", "value": 6667 },
+        { "geometryId": "95", "value": 5030 },
+        { "geometryId": "96", "value": 7638 }
+      ]
+    }
+  ],
+  "legends": [
+    {
+      "id": "distrito-municipal-2025--populacao-60-a-64__legend",
+      "colorBy": {
+        "type": "quantitative",
+        "property": "value",
+        "scale": "threshold",
+        "thresholds": [4674, 7999, 11545, 17722],
+        "colors": ["#8C8C8C", "#00B89F", "#0093B2", "#0067C5", "#00497A"]
+      }
+    }
+  ]
+}
