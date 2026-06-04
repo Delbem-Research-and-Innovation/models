@@ -4,12 +4,6 @@ Monorepo of research models. Each directory under `models/` is an independent Py
 
 ## Linux dev environment setup
 
-Install system dependencies (Debian/Ubuntu):
-
-```bash
-sudo apt update && sudo apt install -y build-essential curl git
-```
-
 Install `uv` (Python toolchain manager):
 
 ```bash
