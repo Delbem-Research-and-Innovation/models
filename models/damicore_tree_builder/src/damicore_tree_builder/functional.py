@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import argparse
 import csv
-import json
 import math
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -16,25 +15,7 @@ class TreeNode(TypedDict):
     children: list[TreeNode]
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Build a Neighbor-Joining tree from a distance matrix CSV."
-    )
-    parser.add_argument(
-        "--input",
-        required=True,
-        help="Path to the input distance matrix CSV file.",
-    )
-    parser.add_argument(
-        "--output",
-        required=True,
-        help="Path where the output Newick tree file will be saved.",
-    )
-
-    return parser.parse_args()
-
-
-def build_success_report(
+def _build_success_report(
     input_path: Path,
     output_path: Path,
     total_leaf_nodes: int,
@@ -50,21 +31,37 @@ def build_success_report(
     }
 
 
-def build_error_report(error: Exception) -> dict[str, str]:
-    return {
-        "status": "error",
-        "message": str(error),
-    }
-
-
 def run(input_path: str, output_path: str) -> dict[str, Any]:
+    """Load a distance matrix, build an NJ tree, and write it to a Newick file.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to the input distance matrix CSV file.
+    output_path : str
+        Destination path for the output Newick file.
+
+    Returns
+    -------
+    dict[str, Any]
+        Report with keys ``status``, ``distance_matrix_path``,
+        ``tree_format``, ``total_leaf_nodes``, ``total_internal_nodes``,
+        and ``output_file_path``.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``input_path`` does not exist.
+    ValueError
+        If the CSV is invalid or the matrix cannot be used for NJ.
+    """
     input_file_path = Path(input_path)
 
     names, matrix = load_distance_matrix(input_path)
     tree = build_neighbor_joining_tree(names, matrix)
     generated_path = write_newick(tree, output_path)
 
-    return build_success_report(
+    return _build_success_report(
         input_path=input_file_path,
         output_path=generated_path,
         total_leaf_nodes=len(get_terminals(tree)),
@@ -72,18 +69,29 @@ def run(input_path: str, output_path: str) -> dict[str, Any]:
     )
 
 
-def main() -> None:
-    args = parse_args()
-
-    try:
-        report = run(args.input, args.output)
-    except (FileNotFoundError, ValueError) as error:
-        report = build_error_report(error)
-
-    print(json.dumps(report, indent=2))
-
-
 def load_distance_matrix(input_path: str) -> tuple[list[str], DistanceMatrix]:
+    """Load and validate a distance matrix from a CSV file.
+
+    Parameters
+    ----------
+    input_path : str
+        Path to the CSV file. The first row and column must be label headers;
+        the matrix body must be numeric, square, symmetric, and have zeros on
+        the diagonal.
+
+    Returns
+    -------
+    tuple[list[str], DistanceMatrix]
+        Ordered label names and the corresponding distance matrix.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``input_path`` does not exist.
+    ValueError
+        If the CSV is malformed, non-numeric, non-square, asymmetric,
+        contains negative values, a non-zero diagonal, or duplicate labels.
+    """
     path = Path(input_path)
     if not path.exists():
         raise FileNotFoundError(f"Input file not found: {path}")
@@ -160,6 +168,27 @@ def _validate_distance_matrix(names: list[str], matrix: DistanceMatrix) -> None:
 
 
 def build_neighbor_joining_tree(names: list[str], matrix: DistanceMatrix) -> TreeNode:
+    """Build a Neighbor-Joining phylogenetic tree from a distance matrix.
+
+    Parameters
+    ----------
+    names : list[str]
+        Unique ordered labels corresponding to matrix rows and columns.
+    matrix : DistanceMatrix
+        Square, symmetric distance matrix with zeros on the diagonal.
+
+    Returns
+    -------
+    TreeNode
+        Root of the unrooted NJ tree. Leaf ``branch_length`` values are
+        set; the root's ``branch_length`` is 0.
+
+    Raises
+    ------
+    ValueError
+        If ``names`` has fewer than 3 elements, contains duplicates, or does
+        not match the shape of ``matrix``.
+    """
     _validate_neighbor_joining_input(names, matrix)
 
     active_nodes: list[str] = list(names)
@@ -285,10 +314,21 @@ def _distance(left: str, right: str, distances: dict[frozenset[str], float]) -> 
     return distances[frozenset((left, right))]
 
 
-def write_newick(tree: TreeNode | None, output_path: str) -> Path:
-    if tree is None:
-        raise ValueError("Tree cannot be None.")
+def write_newick(tree: TreeNode, output_path: str) -> Path:
+    """Serialize a tree to a Newick file.
 
+    Parameters
+    ----------
+    tree : TreeNode
+        Root node of the tree to serialize.
+    output_path : str
+        Destination file path; parent directories are created if needed.
+
+    Returns
+    -------
+    Path
+        Resolved path of the written file.
+    """
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(to_newick(tree), encoding="utf-8")
@@ -296,6 +336,18 @@ def write_newick(tree: TreeNode | None, output_path: str) -> Path:
 
 
 def to_newick(tree: TreeNode) -> str:
+    """Serialize a tree to a Newick-format string.
+
+    Parameters
+    ----------
+    tree : TreeNode
+        Root node of the tree to serialize.
+
+    Returns
+    -------
+    str
+        Newick string terminated with ``";\\n"``.
+    """
     return f"{_format_clade(tree)};\n"
 
 
@@ -318,19 +370,38 @@ def _escape_label(name: str) -> str:
 
 
 def get_terminals(tree: TreeNode) -> list[TreeNode]:
+    """Return all leaf nodes in the tree.
+
+    Parameters
+    ----------
+    tree : TreeNode
+        Root node to traverse.
+
+    Returns
+    -------
+    list[TreeNode]
+        Nodes with no children, in pre-order.
+    """
     return [node for node in _walk_tree(tree) if not node["children"]]
 
 
 def get_nonterminals(tree: TreeNode) -> list[TreeNode]:
+    """Return all internal nodes in the tree.
+
+    Parameters
+    ----------
+    tree : TreeNode
+        Root node to traverse.
+
+    Returns
+    -------
+    list[TreeNode]
+        Nodes with at least one child, in pre-order.
+    """
     return [node for node in _walk_tree(tree) if node["children"]]
 
 
-def _walk_tree(node: TreeNode) -> list[TreeNode]:
-    nodes = [node]
+def _walk_tree(node: TreeNode) -> Generator[TreeNode, None, None]:
+    yield node
     for child in node["children"]:
-        nodes.extend(_walk_tree(child))
-    return nodes
-
-
-if __name__ == "__main__":
-    main()
+        yield from _walk_tree(child)
