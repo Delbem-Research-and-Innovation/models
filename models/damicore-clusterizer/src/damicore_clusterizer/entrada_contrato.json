@@ -1,0 +1,9 @@
+{
+  "topology_tree_path": "/models/fixtures/dataset-seade-pop-age/output-phylo-tree-distance-ncd-gzip-cod_distr-ano-idade.newick",
+  "tree_format": "newick",
+  "clustering_strategy": {
+    "algorithm": "fast_newman", 
+    "stop_criterion": "max_modularity" 
+  },
+  "output_file_path": "/models/fixtures/dataset-seade-pop-age/output-clusters_sao_paulo.json"
+}
