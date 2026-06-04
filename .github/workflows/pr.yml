@@ -13,63 +13,45 @@ permissions:
   contents: read
 
 jobs:
-  detect:
-    name: Detect Changed Packages
+  discover:
+    name: Discover models
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.changed.outputs.matrix }}
-      any: ${{ steps.changed.outputs.any }}
+      matrix: ${{ steps.find.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Find changed packages
-        id: changed
+      - name: List models
+        id: find
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="${{ github.event.pull_request.base.sha }}"
-          else
-            BASE=$(git rev-parse HEAD~1 2>/dev/null || echo "")
-          fi
-
-          if [ -z "$BASE" ]; then
-            PKGS=$(find models packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null \
-              | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
-          else
-            PKGS=$(git diff --name-only "$BASE" HEAD \
-              | grep -E '^(models|packages)/' \
-              | awk -F/ '{print $1"/"$2}' \
-              | sort -u \
-              | while IFS= read -r d; do [ -f "$d/Makefile" ] && echo "$d"; done)
-          fi
-
-          MATRIX=$(echo "$PKGS" | grep -v '^$' | jq -R . | jq -sc .)
+          MATRIX=$(find models -maxdepth 2 -name pyproject.toml \
+            | xargs -n1 dirname | sort | jq -R . | jq -sc .)
           echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-          [ "$MATRIX" = "[]" ] && echo "any=false" >> "$GITHUB_OUTPUT" || echo "any=true" >> "$GITHUB_OUTPUT"
 
   ci:
     name: CI — ${{ matrix.package }}
-    needs: detect
-    if: needs.detect.outputs.any == 'true'
+    needs: discover
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.detect.outputs.matrix) }}
+        package: ${{ fromJson(needs.discover.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
           enable-cache: true
+          cache-dependency-glob: "${{ matrix.package }}/uv.lock"
+      - run: make -C ${{ matrix.package }} dev
+      - run: make -C ${{ matrix.package }} check
+      - run: make -C ${{ matrix.package }} test
 
-      - name: Install dependencies
-        run: make -C ${{ matrix.package }} dev
-
-      - name: Check
-        run: make -C ${{ matrix.package }} check
-
-      - name: Test
-        run: make -C ${{ matrix.package }} test
+  gate:
+    name: CI
+    if: always()
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          [ "${{ needs.ci.result }}" = "success" ] || exit 1
