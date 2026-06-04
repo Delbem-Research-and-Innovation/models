@@ -15,52 +15,44 @@ def select_map_type(
 ) -> VisualizationSpec | None:
     """Select a map type for the given profile.
 
-    Behaviour with prioritized rules:
+    Priority order:
 
-    1. Heatmap: if the dataset contains point coordinates (lat/lon) plus a
-       numeric value, prefer a heatmap candidate.
-    2. Small multiples: if there are two or more numeric variables alongside a
-       spatial key, recommend small multiples.
-    3. Choropleth (strict): only when a spatial key and numeric variable exist
-       AND the dataset matches stricter criteria (e.g. contains age group
-       "60 a 64" or a rate/percentage column). This prevents over-generation
-       of choropleth specs for datasets that are not conceptually area-based.
-    4. Proportional symbol: fallback when spatial key + numeric are present but
-       the choropleth strict conditions do not hold.
-
-    The caller (`recommend_visualization_spec`) only serializes choropleth
-    outputs; other candidates are returned so the CLI can inform the user.
+    1. Heatmap: point coordinates (lat/lon) with a numeric value.
+    2. Small multiples: two or more numeric variables alongside a spatial key.
+    3. Choropleth: spatial key + numeric variable with a normalization signal
+       (rate/percentage column, age-group data, or single numeric column).
+    4. Proportional symbol: spatial key + numeric variable, no normalization
+       signal — raw counts by zone.
     """
     # 1. Heatmap (point coordinates)
     heat = _match_heatmap(profile)
     if heat:
         return heat
 
-    # 2. Choropleth (strict): prefer normalized/rate columns even if multiple
-    # numeric columns exist — these are commonly mapped as choropleths.
-    chor = _match_choropleth(profile)
-    if chor:
-        return chor
-
-    # 3. Small multiples
+    # 2. Small multiples (multiple quantitative variables)
     small = _match_small_multiples(profile)
     if small:
         return small
 
-    # 4. Area-based fallbacks
     if not profile.spatial_columns or not profile.numeric_columns:
         return None
 
-    # Strict choropleth conditions: presence of age group 60 a 64 OR a rate-like
-    # numeric column (contains taxa/perc/rate/percent).
+    # 3. Choropleth — requires a normalization signal to avoid misleading maps.
     def _is_rate_like(name: str) -> bool:
         n = name.lower()
         return any(tok in n for tok in ("taxa", "perc", "percent", "rate"))
 
-    if profile.has_age_60_64 or any(_is_rate_like(n) for n in profile.numeric_columns):
-        return _match_choropleth(profile)
+    choropleth_warranted = (
+        profile.has_age_60_64
+        or any(_is_rate_like(n) for n in profile.numeric_columns)
+        or len(profile.numeric_columns) == 1
+    )
+    if choropleth_warranted:
+        chor = _match_choropleth(profile)
+        if chor:
+            return chor
 
-    # Fallback: proportional symbol (do not serialize to JSON by default)
+    # 4. Proportional symbol fallback
     return _match_proportional_symbol(profile)
 
 
@@ -205,8 +197,7 @@ def _match_small_multiples(profile: DatasetProfile) -> VisualizationSpec | None:
         join_key=profile.spatial_columns[0],
         value_column=profile.numeric_columns[0],
         rationale=(
-            "Multiple quantitative variables with geographic units "
-            "benefit from small multiples."
+            "Multiple quantitative variables with geographic units benefit from small multiples."
         ),
     )
 

@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import csv
 import random
-from math import floor
 from pathlib import Path
 
 random.seed(42)
@@ -87,36 +86,51 @@ for key, total in pop_total.items():
     leitos = round(random.uniform(0.5, 5.0), 2)
     coropletico_rows.append((idd, nome, ano, total, idosos, taxa, leitos))
 
-with open(cwd / '1_mapa_coropletico.csv', 'w', encoding='utf-8', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow([
-        'cod_distr', 'nome_distr', 'ano', 'populacao_total',
-        'populacao_idosa', 'taxa_envelhecimento_perc', 'leitos_por_mil_hab'
-    ])
+with open(cwd / "1_mapa_coropletico.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(
+        [
+            "cod_distr",
+            "nome_distr",
+            "ano",
+            "populacao_total",
+            "populacao_idosa",
+            "taxa_envelhecimento_perc",
+            "leitos_por_mil_hab",
+        ]
+    )
     for row in coropletico_rows:
         writer.writerow(row)
 
 # 3. Proportional symbols
-with open(cwd / '2_mapa_simbolos_proporcionais.csv', 'w', encoding='utf-8', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow([
-        'cod_distr', 'nome_distr', 'latitude', 'longitude',
-        'total_centros_saude_idosos', 'atendimentos_totais_ano'
-    ])
+with open(cwd / "2_mapa_simbolos_proporcionais.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(
+        [
+            "cod_distr",
+            "nome_distr",
+            "latitude",
+            "longitude",
+            "total_centros_saude_idosos",
+            "atendimentos_totais_ano",
+        ]
+    )
     for i, cod in enumerate(codigos_distr):
-        writer.writerow([
-            cod,
-            nomes_distr[i],
-            f'{lats_distr[i]:.6f}',
-            f'{lons_distr[i]:.6f}',
-            random.randint(1, 11),
-            random.randint(5000, 50000),
-        ])
+        writer.writerow(
+            [
+                cod,
+                nomes_distr[i],
+                f"{lats_distr[i]:.6f}",
+                f"{lons_distr[i]:.6f}",
+                random.randint(1, 11),
+                random.randint(5000, 50000),
+            ]
+        )
 
 # 4. Density points (using latest year)
-with open(cwd / '3_mapa_densidade_pontos.csv', 'w', encoding='utf-8', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow(['cod_distr', 'nome_distr', 'populacao_idosa'])
+with open(cwd / "3_mapa_densidade_pontos.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(["cod_distr", "nome_distr", "populacao_idosa"])
     for key, idosos in pop_idosa.items():
         cod, nome, ano = key
         if ano == anos[-1]:
@@ -124,29 +138,41 @@ with open(cwd / '3_mapa_densidade_pontos.csv', 'w', encoding='utf-8', newline=''
 
 # 5. Heatmap / hexbin synthetic microdata
 n_ocorrencias = 50000
-with open(cwd / '4_mapa_calor_hexbin.csv', 'w', encoding='utf-8', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow([
-        'id_atendimento', 'latitude_ocorrencia', 'longitude_ocorrencia',
-        'idade_paciente', 'tempo_deslocamento_min'
-    ])
+with open(cwd / "4_mapa_calor_hexbin.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(
+        [
+            "id_atendimento",
+            "latitude_ocorrencia",
+            "longitude_ocorrencia",
+            "idade_paciente",
+            "tempo_deslocamento_min",
+        ]
+    )
     for i in range(1, n_ocorrencias + 1):
         lat = lat_base + random.gauss(0, 0.08)
         lon = lon_base + random.gauss(0, 0.08)
         idade_paciente = random.randint(60, 94)
         tempo = round(random.gammavariate(2.0, 15.0), 1)
-        writer.writerow([i, f'{lat:.6f}', f'{lon:.6f}', idade_paciente, tempo])
+        writer.writerow([i, f"{lat:.6f}", f"{lon:.6f}", idade_paciente, tempo])
 
 # 6. Small multiples
-with open(cwd / '5_mapa_small_multiples.csv', 'w', encoding='utf-8', newline='') as f:
-    writer = csv.writer(f, delimiter=';')
-    writer.writerow([
-        'cod_distr', 'nome_distr', 'ano', 'taxa_envelhecimento_perc',
-        'leitos_por_mil_hab', 'cobertura_esf_perc', 'indice_vulnerabilidade'
-    ])
+with open(cwd / "5_mapa_small_multiples.csv", "w", encoding="utf-8", newline="") as f:
+    writer = csv.writer(f, delimiter=";")
+    writer.writerow(
+        [
+            "cod_distr",
+            "nome_distr",
+            "ano",
+            "taxa_envelhecimento_perc",
+            "leitos_por_mil_hab",
+            "cobertura_esf_perc",
+            "indice_vulnerabilidade",
+        ]
+    )
     for idd, nome, ano, total, idosos, taxa, leitos in coropletico_rows:
         cobertura = round(random.uniform(30, 95), 2)
         indice = round(random.uniform(0.1, 0.9), 3)
         writer.writerow([idd, nome, ano, taxa, leitos, cobertura, indice])
 
-print('Feito! Os 5 arquivos CSV foram gerados com sucesso na pasta atual:', cwd)
+print("Feito! Os 5 arquivos CSV foram gerados com sucesso na pasta atual:", cwd)

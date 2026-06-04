@@ -3,11 +3,9 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
-from statistics import median
 from typing import Any
 
 from .types import DatasetProfile, VisualizationSpec
-
 
 DEFAULT_CENTER = [-46.6361, -23.5475]
 
@@ -51,6 +49,8 @@ def generate_choropleth_json(
     delimiter = profile.delimiter
     join_key = spec.join_key
     value_column = spec.value_column
+    age_column = profile.age_column
+    year_column = profile.year_column
 
     # Read and aggregate (support optional normalization)
     agg: dict[str, int] = {}
@@ -59,17 +59,16 @@ def generate_choropleth_json(
     age_target = "60 a 64"
     with source_file.open("r", encoding="utf-8", errors="replace", newline="") as fh:
         reader = csv.DictReader(fh, delimiter=delimiter)
-        
+
         for row in reader:
             # collect years
-            ano_str = row.get("ano")
-            if "ano" in row and ano_str:
+            if year_column and year_column in row and row[year_column]:
                 try:
-                    years.add(int(ano_str))
+                    years.add(int(row[year_column]))
                 except (ValueError, TypeError):
                     pass
 
-            if "Idade" in row and row.get("Idade") == age_target:
+            if age_column and age_column in row and row.get(age_column) == age_target:
                 has_age = True
 
     # Decide filter: if age present, use latest year and that age
@@ -81,13 +80,13 @@ def generate_choropleth_json(
             if join_key not in row or value_column not in row:
                 continue
             if has_age:
-                if row.get("Idade") != age_target:
+                if row.get(age_column) != age_target:
                     continue
-                if year_to_use is not None:
+                if year_to_use is not None and year_column:
                     try:
-                        if int(row.get("ano", "0")) != year_to_use:
+                        if int(row.get(year_column, "0")) != year_to_use:
                             continue
-                    except Exception:
+                    except (ValueError, TypeError):
                         pass
 
             key = row.get(join_key)
@@ -100,14 +99,14 @@ def generate_choropleth_json(
                     raw_val = float(value_str)
                 except ValueError:
                     try:
-                        raw_val = float(value_str.replace(',', '.'))
+                        raw_val = float(value_str.replace(",", "."))
                     except (ValueError, AttributeError):
                         raw_val = 0.0
-            
+
             normalize_str = None
             if spec.normalize_by and spec.normalize_by in row:
                 normalize_str = row.get(spec.normalize_by)
-            
+
             if normalize_str:
                 try:
                     denom = float(normalize_str)
@@ -123,7 +122,7 @@ def generate_choropleth_json(
                 ival = int(round(val))
             except (ValueError, TypeError):
                 ival = 0
-            
+
             if key is not None:
                 agg[key] = agg.get(key, 0) + ival
 
@@ -142,9 +141,7 @@ def generate_choropleth_json(
     ]
 
     mapdata_id = f"{dynamic_spec_id}__values"
-    mapdata = [
-        {"geometryId": str(i + 1), "value": v} for i, (_, v) in enumerate(items)
-    ]
+    mapdata = [{"geometryId": key, "value": v} for key, v in items]
 
     # Compose JSON structure
     payload: dict[str, Any] = {

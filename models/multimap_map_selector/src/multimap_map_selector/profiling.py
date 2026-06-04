@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Iterable
 
 from .types import DatasetProfile
-
 
 # Common tokens used to recognise spatial identifier columns.
 SPATIAL_KEYWORDS = (
@@ -104,39 +102,46 @@ def profile_dataset(source_file_path: Path) -> DatasetProfile:
         spatial_columns = [column for column in columns if is_spatial_column_name(column)]
         numeric_columns = [column for column in columns if is_numeric_column_name(column)]
         categorical_columns = [
-            column for column in columns
+            column
+            for column in columns
             if column not in spatial_columns and column not in numeric_columns
         ]
 
-        # Sample rows to detect specific patterns (e.g. age group '60 a 64') and
-        # to identify presence of point coordinates by header names.
-        sample_limit = 200
-        sampled = 0
+        # Detect point coordinate columns by name presence
+        normalized_cols = [normalize_column_name(c) for c in columns]
+        has_point_coords = any("lat" in c for c in normalized_cols) and any(
+            "lon" in c or "long" in c for c in normalized_cols
+        )
+
+        # Detect the age and year columns by header name (case-insensitive).
+        age_column: str | None = next(
+            (
+                c
+                for c in columns
+                if any(tok in normalize_column_name(c) for tok in ("idade", "age"))
+            ),
+            None,
+        )
+        year_column: str | None = next(
+            (c for c in columns if any(tok in normalize_column_name(c) for tok in ("ano", "year"))),
+            None,
+        )
+
+        # Precompute column index for age detection (avoids dict overhead in hot loop).
+        age_col_idx: int | None = columns.index(age_column) if age_column is not None else None
+
+        # Single-pass row scan: count rows and detect age group "60 a 64".
         has_age_60_64 = False
+        row_count = 0
         for row in reader:
-            if sampled >= sample_limit:
-                break
-            sampled += 1
-            for cell in row:
-                if cell and cell.strip().lower() == "60 a 64":
-                    has_age_60_64 = True
-
-        # row_count excludes header; reuse file to count all rows precisely
-    with source_file_path.open("r", encoding="utf-8", errors="replace", newline="") as handle:
-        reader = csv.reader(handle, delimiter=delimiter)
-        # skip header
-        try:
-            next(reader)
-        except StopIteration:
-            pass
-        row_count = sum(1 for _ in reader)
-
-    # Detect point coordinate columns by name presence
-    normalized_cols = [normalize_column_name(c) for c in columns]
-    has_point_coords = (
-        any("lat" in c for c in normalized_cols) and
-        any("lon" in c or "long" in c for c in normalized_cols)
-    )
+            row_count += 1
+            if (
+                not has_age_60_64
+                and age_col_idx is not None
+                and age_col_idx < len(row)
+                and row[age_col_idx].strip().lower() == "60 a 64"
+            ):
+                has_age_60_64 = True
 
     return DatasetProfile(
         source_file=source_file_path,
@@ -148,4 +153,6 @@ def profile_dataset(source_file_path: Path) -> DatasetProfile:
         delimiter=delimiter,
         has_age_60_64=has_age_60_64,
         has_point_coords=has_point_coords,
+        age_column=age_column,
+        year_column=year_column,
     )

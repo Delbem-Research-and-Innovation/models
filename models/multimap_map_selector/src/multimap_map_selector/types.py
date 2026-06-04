@@ -61,6 +61,7 @@ class VisualizationSpec:
             "data_points_mapped": self.data_points_mapped,
             "join_key": self.join_key,
             "value_column": self.value_column,
+            "normalize_by": self.normalize_by,
             "rationale": self.rationale,
         }
 
@@ -99,6 +100,10 @@ class DatasetProfile:
         Number of data rows in the file.
     delimiter: str
         Detected CSV delimiter.
+    age_column : str | None
+        Column name holding age group values (e.g. ``'Idade'``), if detected.
+    year_column : str | None
+        Column name holding year values (e.g. ``'ano'``), if detected.
     """
 
     source_file: Path
@@ -110,3 +115,5 @@ class DatasetProfile:
     delimiter: str
     has_age_60_64: bool = False
     has_point_coords: bool = False
+    age_column: str | None = None
+    year_column: str | None = None

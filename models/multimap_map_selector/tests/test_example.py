@@ -7,11 +7,7 @@ from multimap_map_selector import RecommenderStrategy, recommend_visualization_s
 def test_recommend_visualization_spec_for_fixture(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[3]
     source_file = (
-        root
-        / "models"
-        / "fixtures"
-        / "dataset-seade-pop-age"
-        / "raw-dataset-seade-pop-age.csv"
+        root / "models" / "fixtures" / "dataset-seade-pop-age" / "raw-dataset-seade-pop-age.csv"
     )
 
     result = recommend_visualization_spec(
