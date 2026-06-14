@@ -1,6 +1,5 @@
-from collections.abc import Sequence
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import pandas as pd
 
@@ -26,12 +25,6 @@ class NormalizerOutput(TypedDict):
     sample_files_names: list[str]
 
 
-def _sanitize_filename_part(value: object) -> str:
-    if isinstance(value, float) and value.is_integer():
-        value = int(value)
-    return str(value).replace(" ", "")
-
-
 def normalize_dataset(contract: NormalizerInput) -> NormalizerOutput:
     split_strategy = contract["split_strategy"]
     if split_strategy["type"] != "composite_keys":
@@ -40,7 +33,6 @@ def normalize_dataset(contract: NormalizerInput) -> NormalizerOutput:
             "Only 'composite_keys' is implemented."
         )
 
-    key_columns = split_strategy["key_columns"]
     content_columns = split_strategy["content_columns"]
 
     source_path = Path(contract["source_file_path"]).resolve()
@@ -52,17 +44,11 @@ def normalize_dataset(contract: NormalizerInput) -> NormalizerOutput:
     sample_files_names: list[str] = []
     total_files_generated = 0
 
-    for key_values, group_df in df.groupby(key_columns):
-        if len(key_columns) > 1:
-            # pandas yields a tuple for multi-key groupby;
-            # stubs type the key as Hashable
-            parts = [_sanitize_filename_part(v) for v in cast(Sequence[object], key_values)]
-        else:
-            parts = [_sanitize_filename_part(key_values)]
-        filename = "_".join(parts) + ".txt"
+    for content_col in content_columns:
+        filename = f"{content_col}.txt"
         file_path = output_dir / filename
 
-        content = group_df[content_columns].to_csv(
+        content = df[[content_col]].to_csv(
             sep=";",
             index=False,
             header=False,
@@ -75,7 +61,7 @@ def normalize_dataset(contract: NormalizerInput) -> NormalizerOutput:
         if len(sample_files_names) < 3:
             sample_files_names.append(filename)
 
-    naming_convention = "_".join(f"{{{col}}}" for col in key_columns) + ".txt"
+    naming_convention = "{content_column}.txt"
 
     return {
         "status": "success",

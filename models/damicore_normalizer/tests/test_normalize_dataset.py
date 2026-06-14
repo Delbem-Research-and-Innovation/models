@@ -8,29 +8,33 @@ from damicore_normalizer import NormalizerInput, NormalizerOutput, normalize_dat
 @pytest.mark.unit
 def test_filename_format(normalize_result: NormalizerOutput) -> None:
     output_dir = Path(normalize_result["output_directory_path"])
-    assert (output_dir / "80001_2000_00a04.txt").exists()
+    assert (output_dir / "sexo.txt").exists()
+    assert (output_dir / "populacao.txt").exists()
 
 
 @pytest.mark.unit
-def test_file_content_only_content_columns(normalize_result: NormalizerOutput) -> None:
+def test_total_files_generated(normalize_result: NormalizerOutput) -> None:
+    assert normalize_result["total_files_generated"] == 2
+
+
+@pytest.mark.unit
+def test_file_has_one_column_per_line(normalize_result: NormalizerOutput) -> None:
     output_dir = Path(normalize_result["output_directory_path"])
-    sample_file = output_dir / "80001_2000_00a04.txt"
+    sample_file = output_dir / "populacao.txt"
     lines = sample_file.read_text(encoding="latin-1").strip().split("\n")
-    assert len(lines) == 2
     for line in lines:
         parts = line.split(";")
-        assert len(parts) == 2
+        assert len(parts) == 1
 
 
 @pytest.mark.unit
 def test_output_file_has_no_header(normalize_result: NormalizerOutput) -> None:
     output_dir = Path(normalize_result["output_directory_path"])
-    sample_file = output_dir / "80001_2000_00a04.txt"
+    sexo_file = output_dir / "sexo.txt"
+    populacao_file = output_dir / "populacao.txt"
 
-    content = sample_file.read_text(encoding="latin-1")
-
-    assert "sexo" not in content
-    assert "populacao" not in content
+    assert "sexo" not in sexo_file.read_text(encoding="latin-1")
+    assert "populacao" not in populacao_file.read_text(encoding="latin-1")
 
 
 @pytest.mark.unit
