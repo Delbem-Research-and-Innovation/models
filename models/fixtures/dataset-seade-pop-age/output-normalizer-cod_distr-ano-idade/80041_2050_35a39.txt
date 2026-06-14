@@ -1,2 +1,0 @@
-Homens;1997
-Mulheres;1916

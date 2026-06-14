@@ -1,2 +1,0 @@
-Homens;2014
-Mulheres;2684

@@ -1,2 +1,0 @@
-Homens;18033
-Mulheres;18098

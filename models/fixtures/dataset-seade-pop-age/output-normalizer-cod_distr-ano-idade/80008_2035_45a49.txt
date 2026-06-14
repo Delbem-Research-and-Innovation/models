@@ -1,2 +1,0 @@
-Homens;2017
-Mulheres;1866

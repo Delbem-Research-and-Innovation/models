@@ -1,2 +1,0 @@
-Homens;1103
-Mulheres;1074

@@ -1,2 +1,0 @@
-Homens;2112
-Mulheres;2015
