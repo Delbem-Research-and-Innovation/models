@@ -1,2 +1,0 @@
-Homens;301
-Mulheres;301

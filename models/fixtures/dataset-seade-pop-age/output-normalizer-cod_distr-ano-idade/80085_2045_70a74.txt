@@ -1,2 +1,0 @@
-Homens;2020
-Mulheres;2739
